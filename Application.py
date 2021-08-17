@@ -8,6 +8,7 @@ import scipy as sp
 import scipy.signal as sig
 import matplotlib
 from Correlation import *
+from datetime import *
 
 matplotlib.use('TkAgg')
 
@@ -40,7 +41,6 @@ class App():
         self.figure_canvas_agg.draw()
         self.figure_canvas_agg.get_tk_widget().pack(side='top', fill='both', expand=1)
 
-
     def twinx_canvas(self,y,y_label,t=None,t_label='Time'):
         self.ax3.cla()
 
@@ -70,6 +70,14 @@ class App():
             self.axs1.set_xlabel(t_label)
 
         self.fig.tight_layout(pad=3.0)
+
+        k = int(len(self.axs1.xaxis.get_ticklabels())/5)
+
+        for n, label in enumerate(self.axs1.xaxis.get_ticklabels()):
+            if n % k != 0:
+                label.set_visible(False)
+
+        self.axs1.locator_params(axis='x', nbins=5)
         self.window[self.CANVAS_NAME].TKCanvas.delete('all')
         self.figure_canvas_agg.draw()
 
@@ -143,7 +151,11 @@ class App():
             self.main_variable = x_label
 
         elif event==self.SELECT:
-            pass
+            self.begin_date = datetime.strptime(values[self.DATE_BEG],"%Y-%m-%d %H:%M:%S")
+            self.end_date = datetime.strptime(values[self.DATE_END],"%Y-%m-%d %H:%M:%S")
+
+            x = self.dataset.get_series(self.main_variable, self.begin_date,self.end_date)
+            self.update_canvas(x,self.main_variable,t=None,t_label='Time')
 
         return 1
 

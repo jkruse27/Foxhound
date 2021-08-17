@@ -18,12 +18,12 @@ var_block = [
                 num_rows=15,col_widths=[30],justification = "left")
     ],
     [
-        sg.Input(key='-IN1-', size=(20,1)),
-        sg.CalendarButton('Begin Date',key="-DATE_BEG-"),
+        sg.Input(key='-DATE_BEG-', size=(20,1)),
+        sg.CalendarButton('Begin Date',key="-CAL_BEG-"),
     ],
     [
-        sg.Input(key='-IN2-', size=(20,1)),
-        sg.CalendarButton('End Date',key="-DATE_END-"),
+        sg.Input(key='-DATE_END-', size=(20,1)),
+        sg.CalendarButton('End Date',key="-CAL_END-"),
     ],
     [sg.Button('Select')]
 ]
