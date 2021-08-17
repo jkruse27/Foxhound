@@ -7,13 +7,18 @@ import scipy.signal as sig
 class Correlations():
 
     def __init__(self, filename):
-        self.dataset = pd.read_csv(filename)
+        tmp = pd.read_csv(filename)
+        self.dataset = tmp.drop('datetime', axis=1)
+        self.time = tmp['datetime']
 
     def set_dataset(self,filename):
         self.dataset = pd.read_csv(filename)
 
-    def get_columns(self):
-        return self.dataset.columns
+    def get_time(self):
+        return self.time
+
+    def get_columns(self, regex='.*'):
+        return self.dataset.filter(regex=regex).columns
 
     def correlate(self, x_label, y_labels):
         x = self.dataset[x_label]

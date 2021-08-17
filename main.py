@@ -9,14 +9,23 @@ var_block = [
         sg.Text('Main Variable')
     ],
     [
-        sg.Listbox(values=[], enable_events=True, size=(40, 20), key="-MAIN VAR-")
+        sg.Input(key='-IN-', enable_events=True)
     ],
     [
-        sg.Text('Secondary Variables')
+        sg.Tree(data=sg.TreeData(),enable_events=True, 
+                headings=["PV"],
+                key="-PVS-", auto_size_columns=False,
+                num_rows=15,col_widths=[30],justification = "left")
     ],
     [
-        sg.Listbox(values=[], enable_events=True, select_mode="multiple",size=(40, 20), key="-OTHER VARS-")
-    ]
+        sg.Input(key='-IN1-', size=(20,1)),
+        sg.CalendarButton('Begin Date',key="-DATE_BEG-"),
+    ],
+    [
+        sg.Input(key='-IN2-', size=(20,1)),
+        sg.CalendarButton('End Date',key="-DATE_END-"),
+    ],
+    [sg.Button('Select')]
 ]
 
 search_block = [
