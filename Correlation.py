@@ -18,17 +18,30 @@ class Correlations():
     def get_columns(self, regex='.*'):
         return self.dataset.filter(regex=regex).columns
 
-    def correlate(self, x_label, y_labels):
-        x = self.dataset[x_label]
-        y = self.dataset[y_labels]
+    def correlate(self, x_label, begin=None, end=None, margin=0.2):
+        if(begin==None):
+            begin = self.dataset.index[0]
+        if(end==None):
+            end = self.dataset.index[-1]
 
-        delays = self.find_delays(x,y) 
-        corrs = self.find_correlation(x,self.shift(y,delays))
+        dt = end-begin
+        
+        x = self.dataset[x_label][begin:end]
+        y = self.dataset.drop(x_label,axis=1)[begin-margin*dt:end+margin*dt]
 
-        return delays, corrs
+        delays = self.find_delays(x,y)
+
+        corrs = self.find_correlation(x,self.shift(self.dataset.drop(x_label,axis=1),delays)[begin:end])
+
+        return delays, corrs, y.columns
 
     def find_delays(self, x, y):
-        return y.apply(lambda k: sig.correlate(k,x)).idxmax().apply(lambda k: x.size-k-1)
+        return y.apply(lambda k: sig.correlate(k,x,mode='valid')).apply(lambda k: k.abs().idxmax()-int(len(k/2))+1)
+
+    def to_date(self, delays, names):
+        return [ str((self.dataset[col].index[-1]-self.dataset[col].index[0])*d/self.dataset[col].size)
+                for d, col in zip(delays,names)
+                ]
 
     def find_correlation(self, x, y):
         return y.corrwith(x)

@@ -17,7 +17,8 @@ class App():
     def __init__(self, layout, name="Correlations", CANVAS_NAME='-CANVAS-',
             DATASET='-DATASET-', MAIN_VAR='-MAIN VAR-', OTHER_VAR='-OTHER VARS-',
             CORRELATE='Correlate', PLOT='Plot', CORRELATION_SEL='-CORR-', PVS='-PVS-',
-            IN='-IN-', DATE_BEG='-DATE_BEG-', DATE_END='-DATE_END-', SELECT='Select'):
+            IN='-IN-', DATE_BEG='-DATE_BEG-', DATE_END='-DATE_END-', SELECT='Select',
+            MARGIN='-MARGIN-'):
         self.window = sg.Window(name, layout).Finalize()
         self.window.Maximize()
         self.CANVAS_NAME = CANVAS_NAME
@@ -32,26 +33,31 @@ class App():
         self.PVS = PVS
         self.IN = IN
         self.SELECT = SELECT
+        self.MARGIN = MARGIN
+        self.begin_date = None
+        self.end_date = None
+        self.ax3 = None
 
 
-    def init_canvas(self, FIGSIZE_X=8,FIGSIZE_Y=8):
+    def init_canvas(self, FIGSIZE_X=3,FIGSIZE_Y=3):
         self.fig, self.axs1 = plt.subplots(1,figsize=(FIGSIZE_X,FIGSIZE_Y))
-        self.ax3 = self.axs1.twinx()
         self.figure_canvas_agg = FigureCanvasTkAgg(self.fig, self.window[self.CANVAS_NAME].TKCanvas)
         self.figure_canvas_agg.draw()
         self.figure_canvas_agg.get_tk_widget().pack(side='top', fill='both', expand=1)
 
     def twinx_canvas(self,y,y_label,t=None,t_label='Time'):
+        if(self.ax3 == None):
+            self.ax3 = self.axs1.twinx()
         self.ax3.cla()
 
         if(t==None):
-            plt2,= self.ax3.plot(y,color='r',label=x_label)
+            plt2,= self.ax3.plot(y,color='r',label=y_label)
             self.ax3.set_ylabel(y_label, rotation=-90)
         else:
-            plt2,= self.ax3.plot(t,y,color='r',label=x_label)
+            plt2,= self.ax3.plot(t,y,color='r',label=y_label)
             self.ax3.set_ylabel(y_label, rotation=-90)
 
-        self.fig.tight_layout(pad=3.0)
+        #self.fig.tight_layout(pad=5.0)
         self.window[self.CANVAS_NAME].TKCanvas.delete('all')
         self.figure_canvas_agg.draw()
 
@@ -77,7 +83,6 @@ class App():
             if n % k != 0:
                 label.set_visible(False)
 
-        self.axs1.locator_params(axis='x', nbins=5)
         self.window[self.CANVAS_NAME].TKCanvas.delete('all')
         self.figure_canvas_agg.draw()
 
@@ -113,35 +118,21 @@ class App():
                     )
 
         elif event == self.CORRELATE:
-            try:
-                idxs = self.window[self.OTHER_VARS].get_indexes()
-                all_items = self.window[self.OTHER_VARS].get_list_values()
-                self.other_variables = [all_items[index] for index in idxs]
+            margin = float(values[self.MARGIN])
+           
+            delays, corrs, names = self.dataset.correlate(self.main_variable, self.begin_date, self.end_date, margin)
+            self.delays = dict(zip(names, delays))
+            delays = self.dataset.to_date(delays,names)
 
-                idxs = self.window[self.MAIN_VAR].get_indexes()
-                all_items = self.window[self.MAIN_VAR].get_list_values()
-                self.main_variable = all_items[idxs[0]]
-               
-                delays, corrs = self.dataset.correlate(self.main_variable, self.other_variables)
-                corrs, delays, names = zip(*sorted(zip(corrs, delays, self.other_variables),reverse=True))
+            corrs, delays, names = zip(*sorted(zip(corrs, delays, names),reverse=True,key=lambda x: abs(x[0])))
 
-                new_tree = sg.TreeData()
+            self.window.Element(self.CORR).Update(values=self.create_tree(list(map(list, zip(corrs, delays))), index=names))
 
-                for i,j in enumerate(names):
-                    new_tree.Insert("",j,j,[corrs[i],delays[i]])
-
-                self.window.Element(self.CORR).Update(values=new_tree)
-            except:
-                pass
-
-        elif event == self.PLOT:
-            x_label = self.main_variable
-            x = self.dataset.get_series(x_label)
-            y_label = self.window.Element(self.CORR).SelectedRows[0]
-            y = self.dataset.get_series(y_label)
-
-            self.update_canvas(x,x_label,t=None,t_label='Time')
-            self.twinx_canvas(y,y_label,t=None,t_label='Time')
+        elif event == self.CORR:
+            selected_row = self.window.Element(self.CORR).SelectedRows[0]
+            x = self.dataset.get_series(selected_row)
+            x = x.shift(self.delays[selected_row])[self.begin_date:self.end_date]
+            self.twinx_canvas(x,selected_row,t=None,t_label='Time')
 
         elif event==self.PVS:
             selected_row = self.window.Element(self.PVS).SelectedRows[0]
@@ -151,8 +142,15 @@ class App():
             self.main_variable = x_label
 
         elif event==self.SELECT:
-            self.begin_date = datetime.strptime(values[self.DATE_BEG],"%Y-%m-%d %H:%M:%S")
-            self.end_date = datetime.strptime(values[self.DATE_END],"%Y-%m-%d %H:%M:%S")
+            try:
+                self.begin_date = datetime.strptime(values[self.DATE_BEG],"%Y-%m-%d %H:%M:%S")
+            except:
+                self.begin_date = None
+
+            try:
+                self.end_date = datetime.strptime(values[self.DATE_END],"%Y-%m-%d %H:%M:%S")
+            except:
+                self.end_date = None
 
             x = self.dataset.get_series(self.main_variable, self.begin_date,self.end_date)
             self.update_canvas(x,self.main_variable,t=None,t_label='Time')

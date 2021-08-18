@@ -25,7 +25,8 @@ var_block = [
         sg.Input(key='-DATE_END-', size=(20,1)),
         sg.CalendarButton('End Date',key="-CAL_END-"),
     ],
-    [sg.Button('Select')]
+    [sg.Button('Select')],
+    [sg.Text('Margin: '), sg.Input(key='-MARGIN-', size=(20,1), default_text='0.2')]
 ]
 
 search_block = [
@@ -51,7 +52,7 @@ plt_layout = [
 ]
 
 
-buttons_block = [sg.Button('Correlate'),sg.Button('Plot')]
+buttons_block = [sg.Button('Correlate')]
 
 left_side = [
     search_block,
