@@ -39,43 +39,67 @@ class App():
         self.ax3 = None
 
 
-    def init_canvas(self, FIGSIZE_X=3,FIGSIZE_Y=3):
-        self.fig, self.axs1 = plt.subplots(1,figsize=(FIGSIZE_X,FIGSIZE_Y))
+    def init_canvas(self, FIGSIZE_X=8,FIGSIZE_Y=8):
+        self.FIGSIZE_X = FIGSIZE_X
+        self.FIGSIZE_Y = FIGSIZE_Y
+        self.fig, self.axs1 = plt.subplots(figsize=(FIGSIZE_X,FIGSIZE_Y))
         self.figure_canvas_agg = FigureCanvasTkAgg(self.fig, self.window[self.CANVAS_NAME].TKCanvas)
         self.figure_canvas_agg.draw()
         self.figure_canvas_agg.get_tk_widget().pack(side='top', fill='both', expand=1)
 
-    def twinx_canvas(self,y,y_label,t=None,t_label='Time'):
-        if(self.ax3 == None):
-            self.ax3 = self.axs1.twinx()
-        self.ax3.cla()
+    def twinx_canvas(self,x,x_label,y,y_label,t=None,t_label='Time'):
+        self.axs1.cla()
+
+        if(self.ax3 != None):
+            self.ax3.remove()
+
+        self.ax3 = self.axs1.twinx()
+
+        self.row = x_label
 
         if(t==None):
-            plt2,= self.ax3.plot(y,color='r',label=y_label)
-            self.ax3.set_ylabel(y_label, rotation=-90)
+            self.axs1.plot(x,label=x_label)
+            self.axs1.set_ylabel(x_label)
+            self.axs1.set_xlabel(t_label)
         else:
-            plt2,= self.ax3.plot(t,y,color='r',label=y_label)
-            self.ax3.set_ylabel(y_label, rotation=-90)
+            self.axs1.plot(t,x,label=x_label)
+            self.axs1.set_ylabel(x_label)
+            self.axs1.set_xlabel(t_label)
 
-        #self.fig.tight_layout(pad=5.0)
+        if(t==None):
+            self.ax3.plot(y,color='r',label=y_label)
+            self.ax3.set_ylabel(y_label, rotation=-90,labelpad=7)
+        else:
+            self.ax3.plot(t,y,color='r',label=y_label)
+            self.ax3.set_ylabel(y_label, rotation=-90,labelpad=7)
+
+        k = int(len(self.axs1.xaxis.get_ticklabels())/5)
+
+        for n, label in enumerate(self.axs1.xaxis.get_ticklabels()):
+            if n % k != 0:
+                label.set_visible(False)
+
         self.window[self.CANVAS_NAME].TKCanvas.delete('all')
         self.figure_canvas_agg.draw()
 
 
     def update_canvas(self,x,x_label,t=None,t_label='Time'):
         self.row = x_label
-        self.axs1.cla()
+
+        self.axs1.clear()
+
+        if(self.ax3!=None):
+            self.ax3.remove()
+            self.ax3 = None
 
         if(t==None):
-            plt1,= self.axs1.plot(x,label=x_label)
+            self.axs1.plot(x,label=x_label)
             self.axs1.set_ylabel(x_label)
             self.axs1.set_xlabel(t_label)
         else:
-            plt1,= self.axs1.plot(t,x,label=x_label)
+            self.axs1.plot(t,x,label=x_label)
             self.axs1.set_ylabel(x_label)
             self.axs1.set_xlabel(t_label)
-
-        self.fig.tight_layout(pad=3.0)
 
         k = int(len(self.axs1.xaxis.get_ticklabels())/5)
 
@@ -130,9 +154,10 @@ class App():
 
         elif event == self.CORR:
             selected_row = self.window.Element(self.CORR).SelectedRows[0]
-            x = self.dataset.get_series(selected_row)
-            x = x.shift(self.delays[selected_row])[self.begin_date:self.end_date]
-            self.twinx_canvas(x,selected_row,t=None,t_label='Time')
+            y = self.dataset.get_series(selected_row)
+            y = y.shift(self.delays[selected_row])[self.begin_date:self.end_date]
+            x = self.dataset.get_series(self.main_variable, self.begin_date,self.end_date)
+            self.twinx_canvas(x,self.main_variable, y,selected_row,t=None,t_label='Time')
 
         elif event==self.PVS:
             selected_row = self.window.Element(self.PVS).SelectedRows[0]

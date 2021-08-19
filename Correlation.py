@@ -48,7 +48,7 @@ class Correlations():
         return y.apply(lambda k: sig.correlate(k,x,mode='valid')).apply(lambda k: k.abs().idxmax()-int(len(k/2))+1)
 
     def to_date(self, delays, names):
-        return [str(fs*d) for d, fs in zip(delays,self.get_fs(names))]
+        return [str(fs*d) if d>=0 else '-'+str(fs*(d*-1)) for d, fs in zip(delays,self.get_fs(names))]
 
     def find_correlation(self, x, y):
         return y.corrwith(x)
