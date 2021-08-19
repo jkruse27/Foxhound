@@ -29,19 +29,26 @@ class Correlations():
         x = self.dataset[x_label][begin:end]
         y = self.dataset.drop(x_label,axis=1)[begin-margin*dt:end+margin*dt]
 
-        delays = self.find_delays(x,y)
-
-        corrs = self.find_correlation(x,self.shift(self.dataset.drop(x_label,axis=1),delays)[begin:end])
+        correlations = pd.DataFrame([self.lagged_corr(x,y,lag) for lag in range(-1*int(x.size*margin),int(x.size*margin)+1)], columns=y.columns)
+        delays = [correlations[col].abs().idxmax() for col in correlations]
+        corrs = [correlations[col].iloc[delays[pos]] for pos, col in enumerate(correlations)]
+        
+        delays = [delay-int(x.size*margin) for delay in delays]
 
         return delays, corrs, y.columns
+
+    def lagged_corr(self, x, y, lag):
+        return (y.shift(lag)[x.index[0]:x.index[-1]]).corrwith(x)
+
+    def get_fs(self, names):
+        return [(self.dataset[col].index[-1]-self.dataset[col].index[0])/self.dataset[col].size
+                for col in names]
 
     def find_delays(self, x, y):
         return y.apply(lambda k: sig.correlate(k,x,mode='valid')).apply(lambda k: k.abs().idxmax()-int(len(k/2))+1)
 
     def to_date(self, delays, names):
-        return [ str((self.dataset[col].index[-1]-self.dataset[col].index[0])*d/self.dataset[col].size)
-                for d, col in zip(delays,names)
-                ]
+        return [str(fs*d) for d, fs in zip(delays,self.get_fs(names))]
 
     def find_correlation(self, x, y):
         return y.corrwith(x)
