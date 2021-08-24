@@ -1,75 +1,76 @@
 import PySimpleGUI as sg
 from Application import *
 
-FIGSIZE_X=8
-FIGSIZE_Y=8
+FIGSIZE_X=16
+FIGSIZE_Y=4
 
-var_block = [
-    [
-        sg.Text('Main Variable')
-    ],
-    [
-        sg.Input(key='-IN-', enable_events=True)
-    ],
-    [
-        sg.Tree(data=sg.TreeData(),enable_events=True, 
-                headings=["PV"],
-                key="-PVS-", auto_size_columns=False,
-                num_rows=15,col_widths=[30],justification = "left")
-    ],
-    [
-        sg.Input(key='-DATE_BEG-', size=(20,1)),
-        sg.CalendarButton('Begin Date',key="-CAL_BEG-"),
-    ],
-    [
-        sg.Input(key='-DATE_END-', size=(20,1)),
-        sg.CalendarButton('End Date',key="-CAL_END-"),
-    ],
-    [sg.Button('Select')],
-    [sg.Text('Margin: '), sg.Input(key='-MARGIN-', size=(20,1), default_text='0.2')]
-]
 
 search_block = [
-        sg.Text('Dataset'),
-        sg.In(size=(25, 1), enable_events=True, key="-DATASET-"),
-        sg.FileBrowse(),
+        [
+            sg.Text('      Select Dataset     '),
+            sg.In(size=(70, 1), enable_events=True, key="-DATASET-"),
+            sg.FileBrowse()
+        ],
+        [
+            sg.Text('Search Sample Signal'),
+            sg.Input(key='-IN-', enable_events=True, size=(70,1))
+        ],
+        [
+            sg.Text(' '*70),
+            sg.Input(key='-DATE_BEG-', size=(10,1)),
+            sg.CalendarButton('Begin Date',key="-CAL_BEG-", format='%Y-%m-%d'), 
+            sg.Input(key='-TIME_BEG-', size=(5,1), default_text="00:00")
+        ],
+        [
+            sg.Text(' '*70),
+            sg.Input(key='-DATE_END-', size=(10,1)),
+            sg.CalendarButton(' End Date ',key="-CAL_END-", format='%Y-%m-%d'),
+            sg.Input(key='-TIME_END-', size=(5,1), default_text="00:00")
+        ],
+        [
+            sg.Text(' '*80),
+            sg.Text('Margin (%): '),
+            sg.Input(key='-MARGIN-', size=(5,1), default_text='0.2')
+        ],
+        [sg.Text(' '*94),sg.Button('Select')]
 ]
 
-rank_block = [
-    [
-        sg.Text('Correlations')
-    ],
-    [
-        sg.Tree(data=sg.TreeData(),enable_events=True, 
-                headings=["Correlation", "Phase"],
-                key="-CORR-")
-    ]
+select_var_block = [
+        [
+            sg.Tree(data=sg.TreeData(),enable_events=True, 
+                    headings=["Variable"],
+                    key="-PVS-", auto_size_columns=False,
+                    num_rows=9,col_widths=[30],justification = "left")
+        ]
 ]
+
+var_block = [sg.Column(search_block, justification='left'), sg.Column(select_var_block, justification='center')]
 
 plt_layout = [
-    [sg.Text('Plots')],
     [sg.Canvas(key='-CANVAS-')]
 ]
 
+rank_block = [[
+        sg.Text('Correlations'),
+        sg.Tree(data=sg.TreeData(),enable_events=True, 
+                headings=["Variable","Correlation", "Phase"],
+                key="-CORR-", num_rows=5,col0_width=100, col_widths=[100], justification="center")
+        ]]
 
-buttons_block = [sg.Button('Correlate')]
+buttons_block = [[sg.Button('Correlate')]]
 
 left_side = [
-    search_block,
-    [sg.Column(rank_block)],
-    [sg.HSeparator()],
-    buttons_block
-
-]
+    sg.Column(buttons_block),
+    sg.Column(rank_block)
+        ]
 
 layout = [
-    [
-        sg.Column(left_side),
-        sg.VSeperator(),
-        sg.Column(plt_layout),
-        sg.VSeperator(),
-        sg.Column(var_block)
-    ]]
+    var_block,
+    [sg.HSeparator()],
+    plt_layout,
+    [sg.HSeparator()],
+    left_side,
+]
 
 # Create the window
 app = App(layout)

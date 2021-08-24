@@ -31,7 +31,7 @@ class Correlations():
 
         correlations = pd.DataFrame([self.lagged_corr(x,y,lag) for lag in range(-1*int(x.size*margin),int(x.size*margin)+1)], columns=y.columns)
         delays = [correlations[col].abs().idxmax() for col in correlations]
-        corrs = [correlations[col].iloc[delays[pos]] for pos, col in enumerate(correlations)]
+        corrs = [round(correlations[col].iloc[delays[pos]],2) for pos, col in enumerate(correlations)]
         
         delays = [delay-int(x.size*margin) for delay in delays]
 
@@ -48,7 +48,7 @@ class Correlations():
         return y.apply(lambda k: sig.correlate(k,x,mode='valid')).apply(lambda k: k.abs().idxmax()-int(len(k/2))+1)
 
     def to_date(self, delays, names):
-        return [str(fs*d) if d>=0 else '-'+str(fs*(d*-1)) for d, fs in zip(delays,self.get_fs(names))]
+        return [str(round((fs*d).days*24+(fs*d).seconds/3600,3))+"h" for d, fs in zip(delays,self.get_fs(names))]
 
     def find_correlation(self, x, y):
         return y.corrwith(x)

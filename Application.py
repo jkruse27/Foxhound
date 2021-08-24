@@ -17,9 +17,9 @@ class App():
     def __init__(self, layout, name="Correlations", CANVAS_NAME='-CANVAS-',
             DATASET='-DATASET-', MAIN_VAR='-MAIN VAR-', OTHER_VAR='-OTHER VARS-',
             CORRELATE='Correlate', PLOT='Plot', CORRELATION_SEL='-CORR-', PVS='-PVS-',
-            IN='-IN-', DATE_BEG='-DATE_BEG-', DATE_END='-DATE_END-', SELECT='Select',
-            MARGIN='-MARGIN-'):
-        self.window = sg.Window(name, layout).Finalize()
+            IN='-IN-', DATE_BEG='-DATE_BEG-', DATE_END='-DATE_END-', TIME_BEG='-TIME_BEG-',
+            TIME_END='-TIME_END-',SELECT='Select', MARGIN='-MARGIN-'):
+        self.window = sg.Window(name, layout, resizable=True).Finalize()
         self.window.Maximize()
         self.CANVAS_NAME = CANVAS_NAME
         self.DATASET = DATASET
@@ -30,6 +30,8 @@ class App():
         self.CORR = CORRELATION_SEL
         self.DATE_BEG = DATE_BEG
         self.DATE_END = DATE_END
+        self.TIME_BEG = TIME_BEG
+        self.TIME_END = TIME_END
         self.PVS = PVS
         self.IN = IN
         self.SELECT = SELECT
@@ -75,6 +77,9 @@ class App():
 
         k = int(len(self.axs1.xaxis.get_ticklabels())/5)
 
+        self.axs1.yaxis.label.set_color('blue')
+        self.ax3.yaxis.label.set_color('red')
+
         for n, label in enumerate(self.axs1.xaxis.get_ticklabels()):
             if n % k != 0:
                 label.set_visible(False)
@@ -106,6 +111,8 @@ class App():
         for n, label in enumerate(self.axs1.xaxis.get_ticklabels()):
             if n % k != 0:
                 label.set_visible(False)
+
+        self.axs1.yaxis.label.set_color('blue')
 
         self.window[self.CANVAS_NAME].TKCanvas.delete('all')
         self.figure_canvas_agg.draw()
@@ -150,10 +157,11 @@ class App():
 
             corrs, delays, names = zip(*sorted(zip(corrs, delays, names),reverse=True,key=lambda x: abs(x[0])))
 
-            self.window.Element(self.CORR).Update(values=self.create_tree(list(map(list, zip(corrs, delays))), index=names))
+            self.window.Element(self.CORR).Update(values=self.create_tree(list(map(list, zip(names, corrs, delays)))))
 
         elif event == self.CORR:
             selected_row = self.window.Element(self.CORR).SelectedRows[0]
+            selected_row = self.window.Element(self.CORR).TreeData.tree_dict[selected_row].values[0]
             y = self.dataset.get_series(selected_row)
             y = y.shift(self.delays[selected_row])[self.begin_date:self.end_date]
             x = self.dataset.get_series(self.main_variable, self.begin_date,self.end_date)
@@ -168,12 +176,12 @@ class App():
 
         elif event==self.SELECT:
             try:
-                self.begin_date = datetime.strptime(values[self.DATE_BEG],"%Y-%m-%d %H:%M:%S")
+                self.begin_date = datetime.strptime(values[self.DATE_BEG].strip()+" "+values[self.TIME_BEG].strip(),"%Y-%m-%d %H:%M")
             except:
                 self.begin_date = None
 
             try:
-                self.end_date = datetime.strptime(values[self.DATE_END],"%Y-%m-%d %H:%M:%S")
+                self.end_date = datetime.strptime(values[self.DATE_END].strip()+" "+values[self.TIME_END].strip(),"%Y-%m-%d %H:%M")
             except:
                 self.end_date = None
 
