@@ -56,14 +56,20 @@ rank_block = [[
         sg.Text('Correlations'),
         sg.Tree(data=sg.TreeData(),enable_events=True, 
                 headings=["Variable","Correlation", "Phase"],
-                key="-CORR-", num_rows=5,col0_width=100, col_widths=[100], justification="center")
+                key="-CORR-", num_rows=5,col0_width=50, col_widths=[60, 15], justification="center")
         ]]
 
 buttons_block = [[sg.Button('Correlate')]]
 
+regex_block = [
+    [sg.Text("Regex: "),
+    sg.Input(key='-REGEX-')],
+    [sg.Text(' '*50, key='-N_VARS-')]
+]
+
 left_side = [
-    sg.Text("Regex: "),
-    sg.Input(key='-REGEX-'),
+    sg.Column(regex_block),
+    sg.Button("Choose"),
     sg.Column(buttons_block),
     sg.Column(rank_block)
         ]

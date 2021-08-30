@@ -29,9 +29,11 @@ class Correlations():
         else:
             return False
 
-    def get_EPICS_pv(self, name, start_time=None, end_time=None):
+    def number_of_vars(self, regex):
+        return len(self.epics_req.get_names(regex=regex, limit=-1))
 
-        return self.epics_req.get_pv(name,start_time,end_time)
+    def get_EPICS_pv(self, name, start_time=None, end_time=None):
+        return self.correct_datetime(self.epics_req.get_pv(name,start_time,end_time))
 
     def update_pv_names(self, regex=None, limit=100):
         self.dataset = pd.DataFrame(columns=self.epics_req.get_names(regex=regex, limit=limit))
@@ -42,6 +44,29 @@ class Correlations():
 
     def get_columns(self, regex='.*'):
         return self.dataset.filter(regex=regex).columns
+
+    def correct_datetime(self, x):
+        x.index = pd.to_datetime(x.index, format="%d.%m.%y %H:%M")
+        return x
+
+
+    def correlate_EPICS(self, x_label, regex, begin=None, end=None, margin=0.2):
+        x = self.get_EPICS_pv([x_label], begin, end)
+
+        dt = end-begin
+        
+        pvs = self.epics_req.get_names(regex=regex, limit=-1)
+        y = self.get_EPICS_pv(pvs, begin-margin*dt, end+margin*dt)
+
+        self.dataset = y
+
+        correlations = pd.DataFrame([self.lagged_corr(x,y,lag) for lag in range(-1*int(x.size*margin),int(x.size*margin)+1)], columns=y.columns)
+        delays = [correlations[col].abs().idxmax() for col in correlations]
+        corrs = [round(correlations[col].iloc[delays[pos]],2) for pos, col in enumerate(correlations)]
+        
+        delays = [delay-int(x.size*margin) for delay in delays]
+
+        return delays, corrs, y.columns
 
     def correlate(self, x_label, begin=None, end=None, margin=0.2):
         if(begin==None):
@@ -63,7 +88,7 @@ class Correlations():
         return delays, corrs, y.columns
 
     def lagged_corr(self, x, y, lag):
-        return (y.shift(lag)[x.index[0]:x.index[-1]]).corrwith(x)
+        return (y.shift(lag)[x.index[0]:x.index[-1]]).corrwith(x[x.columns[0]])
 
     def get_fs(self, names):
         return [(self.dataset[col].index[-1]-self.dataset[col].index[0])/self.dataset[col].size

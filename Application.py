@@ -20,7 +20,7 @@ class App():
             CORRELATE='Correlate', PLOT='Plot', CORRELATION_SEL='-CORR-', PVS='-PVS-',
             IN='-IN-', DATE_BEG='-DATE_BEG-', DATE_END='-DATE_END-', TIME_BEG='-TIME_BEG-',
             TIME_END='-TIME_END-',SELECT='Select', MARGIN='-MARGIN-', EPICS='Use EPICS',
-            SEARCH='Search'):
+            SEARCH='Search', CHOOSE='Choose', NUMBER='-N_VARS-', REGEX='-REGEX-'):
         self.window = sg.Window(name, layout, resizable=True).Finalize()
         self.window.Maximize()
         self.CANVAS_NAME = CANVAS_NAME
@@ -40,6 +40,9 @@ class App():
         self.MARGIN = MARGIN
         self.EPICS = EPICS
         self.SEARCH = SEARCH
+        self.CHOOSE = CHOOSE
+        self.N_VARS = NUMBER
+        self.REGEX = REGEX
         self.is_EPICS = False
 
 
@@ -239,10 +242,41 @@ class App():
                 except:
                     self.end_date = None
 
-                print(self.begin_date, self.end_date)
-
                 x = self.dataset.get_EPICS_pv([self.main_variable], self.begin_date,self.end_date)
                 self.update_canvas(x,self.main_variable,t=None,t_label='Time')
+
+            elif event == self.CORRELATE:
+                margin = float(values[self.MARGIN])
+                self.marg = margin
+                regex = values[self.REGEX]
+                if(regex == ''):
+                    regex = ".*"
+
+                delays, corrs, names = self.dataset.correlate_EPICS(self.main_variable, regex, self.begin_date, self.end_date, margin)
+                self.delays = dict(zip(names, delays))
+                delays = self.dataset.to_date(delays,names)
+
+                corrs, delays, names = zip(*sorted(zip(corrs, delays, names),reverse=True,key=lambda x: abs(x[0])))
+
+                self.window.Element(self.CORR).Update(values=self.create_tree(list(map(list, zip(names, corrs, delays)))))
+
+            elif event == self.CORR:
+                selected_row = self.window.Element(self.CORR).SelectedRows[0]
+                selected_row = self.window.Element(self.CORR).TreeData.tree_dict[selected_row].values[0]
+
+                dt = self.end_date - self.begin_date
+
+                y = self.dataset.get_EPICS_pv([selected_row], self.begin_date-self.marg*dt,self.end_date+self.marg*dt)
+                y = y.shift(self.delays[selected_row])[self.begin_date:self.end_date]
+                x = self.dataset.get_EPICS_pv([self.main_variable], self.begin_date,self.end_date)
+                self.twinx_canvas(x,self.main_variable, y,selected_row,t=None,t_label='Time')
+
+        if event == self.CHOOSE:
+            n = self.dataset.number_of_vars(values[self.REGEX])
+            message = 'Número de Sinais: '+str(n)
+
+            self.window.Element(self.N_VARS).Update(message)
+
 
         return 1
 
