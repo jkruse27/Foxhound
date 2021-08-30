@@ -9,11 +9,13 @@ search_block = [
         [
             sg.Text('      Select Dataset     '),
             sg.In(size=(70, 1), enable_events=True, key="-DATASET-"),
-            sg.FileBrowse()
+            sg.FileBrowse(),
+            sg.Button('Use EPICS')
         ],
         [
             sg.Text('Search Sample Signal'),
-            sg.Input(key='-IN-', enable_events=True, size=(70,1))
+            sg.Input(key='-IN-', enable_events=True, size=(70,1)),
+            sg.Button('Search')
         ],
         [
             sg.Text(' '*70),
@@ -60,6 +62,8 @@ rank_block = [[
 buttons_block = [[sg.Button('Correlate')]]
 
 left_side = [
+    sg.Text("Regex: "),
+    sg.Input(key='-REGEX-'),
     sg.Column(buttons_block),
     sg.Column(rank_block)
         ]

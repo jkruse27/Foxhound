@@ -9,6 +9,7 @@ import scipy.signal as sig
 import matplotlib
 from Correlation import *
 from datetime import *
+import pytz
 
 matplotlib.use('TkAgg')
 
@@ -18,7 +19,8 @@ class App():
             DATASET='-DATASET-', MAIN_VAR='-MAIN VAR-', OTHER_VAR='-OTHER VARS-',
             CORRELATE='Correlate', PLOT='Plot', CORRELATION_SEL='-CORR-', PVS='-PVS-',
             IN='-IN-', DATE_BEG='-DATE_BEG-', DATE_END='-DATE_END-', TIME_BEG='-TIME_BEG-',
-            TIME_END='-TIME_END-',SELECT='Select', MARGIN='-MARGIN-'):
+            TIME_END='-TIME_END-',SELECT='Select', MARGIN='-MARGIN-', EPICS='Use EPICS',
+            SEARCH='Search'):
         self.window = sg.Window(name, layout, resizable=True).Finalize()
         self.window.Maximize()
         self.CANVAS_NAME = CANVAS_NAME
@@ -36,6 +38,11 @@ class App():
         self.IN = IN
         self.SELECT = SELECT
         self.MARGIN = MARGIN
+        self.EPICS = EPICS
+        self.SEARCH = SEARCH
+        self.is_EPICS = False
+
+
         self.begin_date = None
         self.end_date = None
         self.ax3 = None
@@ -129,6 +136,9 @@ class App():
 
         return new_tree
 
+    def create_from_EPICS(self, regex=None, limit=100):
+        self.dataset.update_pv_names(regex=regex,limit=limit)
+        self.window.Element(self.PVS).Update(values=self.create_tree(self.dataset.get_columns()))
 
     def iteration(self):
 
@@ -137,56 +147,102 @@ class App():
         if event == sg.WIN_CLOSED:
             return 0
 
-        if event == self.DATASET:
-            self.dataset = Correlations(values[self.DATASET])    
-            self.window.Element(self.PVS).Update(values=self.create_tree(self.dataset.get_columns()))
+        if self.is_EPICS == False:
+            if event == self.DATASET:
+                try:
+                    self.dataset = Correlations(values[self.DATASET])    
+                    self.window.Element(self.PVS).Update(values=self.create_tree(self.dataset.get_columns()))
+                except:
+                    print('Erro ao abrir dataset')
 
-        elif event == self.IN:
-            self.window.Element(self.PVS).Update(
-                    values=self.create_tree(self.dataset.get_columns(
-                        regex=".*"+values[self.IN]+".*")
+            elif event == self.EPICS:
+                self.is_EPICS = True
+                self.window.Element(self.DATASET).Update(value='EPICS')
+                self.dataset = Correlations()
+                self.create_from_EPICS()
+
+            elif event == self.IN:
+                self.window.Element(self.PVS).Update(
+                        values=self.create_tree(self.dataset.get_columns(
+                            regex=".*"+values[self.IN]+".*")
+                            )
                         )
-                    )
 
-        elif event == self.CORRELATE:
-            margin = float(values[self.MARGIN])
-           
-            delays, corrs, names = self.dataset.correlate(self.main_variable, self.begin_date, self.end_date, margin)
-            self.delays = dict(zip(names, delays))
-            delays = self.dataset.to_date(delays,names)
+            elif event == self.CORRELATE:
+                margin = float(values[self.MARGIN])
+               
+                delays, corrs, names = self.dataset.correlate(self.main_variable, self.begin_date, self.end_date, margin)
+                self.delays = dict(zip(names, delays))
+                delays = self.dataset.to_date(delays,names)
 
-            corrs, delays, names = zip(*sorted(zip(corrs, delays, names),reverse=True,key=lambda x: abs(x[0])))
+                corrs, delays, names = zip(*sorted(zip(corrs, delays, names),reverse=True,key=lambda x: abs(x[0])))
 
-            self.window.Element(self.CORR).Update(values=self.create_tree(list(map(list, zip(names, corrs, delays)))))
+                self.window.Element(self.CORR).Update(values=self.create_tree(list(map(list, zip(names, corrs, delays)))))
 
-        elif event == self.CORR:
-            selected_row = self.window.Element(self.CORR).SelectedRows[0]
-            selected_row = self.window.Element(self.CORR).TreeData.tree_dict[selected_row].values[0]
-            y = self.dataset.get_series(selected_row)
-            y = y.shift(self.delays[selected_row])[self.begin_date:self.end_date]
-            x = self.dataset.get_series(self.main_variable, self.begin_date,self.end_date)
-            self.twinx_canvas(x,self.main_variable, y,selected_row,t=None,t_label='Time')
+            elif event == self.CORR:
+                selected_row = self.window.Element(self.CORR).SelectedRows[0]
+                selected_row = self.window.Element(self.CORR).TreeData.tree_dict[selected_row].values[0]
+                y = self.dataset.get_series(selected_row)
+                y = y.shift(self.delays[selected_row])[self.begin_date:self.end_date]
+                x = self.dataset.get_series(self.main_variable, self.begin_date,self.end_date)
+                self.twinx_canvas(x,self.main_variable, y,selected_row,t=None,t_label='Time')
 
-        elif event==self.PVS:
-            selected_row = self.window.Element(self.PVS).SelectedRows[0]
-            x_label = self.window.Element(self.PVS).TreeData.tree_dict[selected_row].values
-            x = self.dataset.get_series(x_label)
-            self.update_canvas(x,x_label,t=None,t_label='Time')
-            self.main_variable = x_label
+            elif event==self.PVS:
+                selected_row = self.window.Element(self.PVS).SelectedRows[0]
+                x_label = self.window.Element(self.PVS).TreeData.tree_dict[selected_row].values
+                x = self.dataset.get_series(x_label)
+                self.update_canvas(x,x_label,t=None,t_label='Time')
+                self.main_variable = x_label
 
-        elif event==self.SELECT:
-            try:
-                self.begin_date = datetime.strptime(values[self.DATE_BEG].strip()+" "+values[self.TIME_BEG].strip(),"%Y-%m-%d %H:%M")
-            except:
-                self.begin_date = None
+            elif event==self.SELECT:
+                try:
+                    self.begin_date = datetime.strptime(values[self.DATE_BEG].strip()+" "+values[self.TIME_BEG].strip(),"%Y-%m-%d %H:%M")
+                except:
+                    self.begin_date = None
 
-            try:
-                self.end_date = datetime.strptime(values[self.DATE_END].strip()+" "+values[self.TIME_END].strip(),"%Y-%m-%d %H:%M")
-            except:
-                self.end_date = None
+                try:
+                    self.end_date = datetime.strptime(values[self.DATE_END].strip()+" "+values[self.TIME_END].strip(),"%Y-%m-%d %H:%M")
+                except:
+                    self.end_date = None
 
-            x = self.dataset.get_series(self.main_variable, self.begin_date,self.end_date)
-            self.update_canvas(x,self.main_variable,t=None,t_label='Time')
+                x = self.dataset.get_series(self.main_variable, self.begin_date,self.end_date)
+                self.update_canvas(x,self.main_variable,t=None,t_label='Time')
+        else:
+            if event == self.SEARCH:
+                self.create_from_EPICS(regex=".*"+values[self.IN]+".*")
+
+            elif event == self.DATASET:
+                try:
+                    self.is_EPICS = False
+                    self.dataset = Correlations(values[self.DATASET])    
+                    self.window.Element(self.PVS).Update(values=self.create_tree(self.dataset.get_columns()))
+                except:
+                    print('Erro ao abrir dataset')
+
+            elif event==self.PVS:
+                selected_row = self.window.Element(self.PVS).SelectedRows[0]
+                x_label = self.window.Element(self.PVS).TreeData.tree_dict[selected_row].values
+                x = self.dataset.get_EPICS_pv([x_label])
+                self.update_canvas(x,x_label,t=None,t_label='Time')
+                self.main_variable = x_label
+
+            elif event==self.SELECT:
+                try:
+                    tmp = datetime.strptime(values[self.DATE_BEG].strip()+" "+values[self.TIME_BEG].strip(),"%Y-%m-%d %H:%M")
+                    self.begin_date = datetime(tmp.year,tmp.month,tmp.day,hour=tmp.hour,minute=tmp.minute, tzinfo=pytz.timezone('America/Sao_Paulo'))
+                except:
+                    self.begin_date = None
+
+                try:
+                    tmp = datetime.strptime(values[self.DATE_END].strip()+" "+values[self.TIME_END].strip(),"%Y-%m-%d %H:%M")
+                    self.end_date = datetime(tmp.year,tmp.month,tmp.day,hour=tmp.hour,minute=tmp.minute, tzinfo=pytz.timezone('America/Sao_Paulo'))
+                except:
+                    self.end_date = None
+
+                print(self.begin_date, self.end_date)
+
+                x = self.dataset.get_EPICS_pv([self.main_variable], self.begin_date,self.end_date)
+                self.update_canvas(x,self.main_variable,t=None,t_label='Time')
 
         return 1
 

@@ -4,13 +4,38 @@ import numpy as np
 import scipy as sp
 import scipy.signal as sig
 from datetime import *
+from EPICS_Requests import *
 
 class Correlations():
 
-    def __init__(self, filename, date_name='datetime'):
-        self.dataset = pd.read_csv(filename)
-        self.dataset[date_name] = pd.to_datetime(self.dataset[date_name], format="%d.%m.%y %H:%M")
-        self.dataset.set_index(date_name, inplace=True)
+    def __init__(self, filename=None, date_name='datetime'):
+        if(filename == None):
+            self.EPICS = True
+            self.epics_req = EPICS_Requests()
+
+        else:
+            self.EPICS = False
+            self.dataset = pd.read_csv(filename)
+            self.dataset[date_name] = pd.to_datetime(self.dataset[date_name], format="%d.%m.%y %H:%M")
+            self.dataset.set_index(date_name, inplace=True)
+
+        self.is_name_done = False
+        self.is_pvs_done = False
+
+    def get_names_ready(self):
+        if(self.is_name_done):
+            self.is_name_done = False
+            return True
+        else:
+            return False
+
+    def get_EPICS_pv(self, name, start_time=None, end_time=None):
+
+        return self.epics_req.get_pv(name,start_time,end_time)
+
+    def update_pv_names(self, regex=None, limit=100):
+        self.dataset = pd.DataFrame(columns=self.epics_req.get_names(regex=regex, limit=limit))
+        self.is_name_done = True
 
     def set_dataset(self,filename):
         self.dataset = pd.read_csv(filename)
