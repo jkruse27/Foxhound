@@ -62,8 +62,9 @@ rank_block = [[
 buttons_block = [[sg.Button('Correlate')]]
 
 regex_block = [
-    [sg.Text("Regex: "),
+    [sg.Text("Regex: ", enable_events=True, key='-REDIRECT-'),
     sg.Input(key='-REGEX-')],
+    [sg.Text('. --> Any Character\n* --> Repeat 0 or more times\n() --> Capture in group')],
     [sg.Text(' '*50, key='-N_VARS-')]
 ]
 
@@ -71,7 +72,8 @@ left_side = [
     sg.Column(regex_block),
     sg.Button("Choose"),
     sg.Column(buttons_block),
-    sg.Column(rank_block)
+    sg.Column(rank_block),
+    sg.Checkbox('Correct Delay:', default=True, key="-DELAY-", enable_events=True)
         ]
 
 layout = [

@@ -10,6 +10,7 @@ import matplotlib
 from Correlation import *
 from datetime import *
 import pytz
+import webbrowser
 
 matplotlib.use('TkAgg')
 
@@ -20,7 +21,8 @@ class App():
             CORRELATE='Correlate', PLOT='Plot', CORRELATION_SEL='-CORR-', PVS='-PVS-',
             IN='-IN-', DATE_BEG='-DATE_BEG-', DATE_END='-DATE_END-', TIME_BEG='-TIME_BEG-',
             TIME_END='-TIME_END-',SELECT='Select', MARGIN='-MARGIN-', EPICS='Use EPICS',
-            SEARCH='Search', CHOOSE='Choose', NUMBER='-N_VARS-', REGEX='-REGEX-'):
+            SEARCH='Search', CHOOSE='Choose', NUMBER='-N_VARS-', REGEX='-REGEX-', 
+            REDIRECT='-REDIRECT-', DELAY='-DELAY-'):
         self.window = sg.Window(name, layout, resizable=True).Finalize()
         self.window.Maximize()
         self.CANVAS_NAME = CANVAS_NAME
@@ -43,6 +45,8 @@ class App():
         self.CHOOSE = CHOOSE
         self.N_VARS = NUMBER
         self.REGEX = REGEX
+        self.DELAY = DELAY
+        self.REDIRECT = REDIRECT
         self.is_EPICS = False
 
 
@@ -186,7 +190,9 @@ class App():
                 selected_row = self.window.Element(self.CORR).SelectedRows[0]
                 selected_row = self.window.Element(self.CORR).TreeData.tree_dict[selected_row].values[0]
                 y = self.dataset.get_series(selected_row)
-                y = y.shift(self.delays[selected_row])[self.begin_date:self.end_date]
+                if(values[self.DELAY]):
+                    y = y.shift(self.delays[selected_row])    
+                y = y[self.begin_date:self.end_date]
                 x = self.dataset.get_series(self.main_variable, self.begin_date,self.end_date)
                 self.twinx_canvas(x,self.main_variable, y,selected_row,t=None,t_label='Time')
 
@@ -210,6 +216,8 @@ class App():
 
                 x = self.dataset.get_series(self.main_variable, self.begin_date,self.end_date)
                 self.update_canvas(x,self.main_variable,t=None,t_label='Time')
+            elif event == self.REDIRECT:
+                webbrowser.open('https://docs.oracle.com/javase/7/docs/api/java/util/regex/Pattern.html', new=2)
         else:
             if event == self.SEARCH:
                 self.create_from_EPICS(regex=".*"+values[self.IN]+".*")
@@ -267,9 +275,15 @@ class App():
                 dt = self.end_date - self.begin_date
 
                 y = self.dataset.get_EPICS_pv([selected_row], self.begin_date-self.marg*dt,self.end_date+self.marg*dt)
-                y = y.shift(self.delays[selected_row])[self.begin_date:self.end_date]
+
+                if(values[self.DELAY]):
+                    y = y.shift(self.delays[selected_row])    
+                y = y[self.begin_date:self.end_date]
                 x = self.dataset.get_EPICS_pv([self.main_variable], self.begin_date,self.end_date)
                 self.twinx_canvas(x,self.main_variable, y,selected_row,t=None,t_label='Time')
+
+            elif event == self.REDIRECT:
+                webbrowser.open('https://docs.oracle.com/javase/7/docs/api/java/util/regex/Pattern.html', new=2)
 
         if event == self.CHOOSE:
             n = self.dataset.number_of_vars(values[self.REGEX])
