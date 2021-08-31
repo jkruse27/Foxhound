@@ -3,6 +3,7 @@ import pandas as pd
 import numpy as np
 import scipy as sp
 import scipy.signal as sig
+import asyncio
 from datetime import *
 from EPICS_Requests import *
 
@@ -19,6 +20,7 @@ class Correlations():
             self.dataset[date_name] = pd.to_datetime(self.dataset[date_name], format="%d.%m.%y %H:%M")
             self.dataset.set_index(date_name, inplace=True)
 
+        self.loop = asyncio.get_event_loop()
         self.is_name_done = False
         self.is_pvs_done = False
 
@@ -33,7 +35,7 @@ class Correlations():
         return len(self.epics_req.get_names(regex=regex, limit=-1))
 
     def get_EPICS_pv(self, name, start_time=None, end_time=None):
-        return self.correct_datetime(self.epics_req.get_pv(name,start_time,end_time))
+        return self.correct_datetime(self.loop.run_until_complete(self.epics_req.call_fetch(name,start_time,end_time)))
 
     def update_pv_names(self, regex=None, limit=100):
         self.dataset = pd.DataFrame(columns=self.epics_req.get_names(regex=regex, limit=limit))
@@ -60,7 +62,7 @@ class Correlations():
 
         self.dataset = y
 
-        correlations = pd.DataFrame([self.lagged_corr(x,y,lag) for lag in range(-1*int(x.size*margin),int(x.size*margin)+1)], columns=y.columns)
+        correlations = pd.DataFrame([self.lagged_corr(x[x.columns[0]],y,lag) for lag in range(-1*int(x.size*margin),int(x.size*margin)+1)], columns=y.columns)
         delays = [correlations[col].abs().idxmax() for col in correlations]
         corrs = [round(correlations[col].iloc[delays[pos]],2) for pos, col in enumerate(correlations)]
         
@@ -88,7 +90,7 @@ class Correlations():
         return delays, corrs, y.columns
 
     def lagged_corr(self, x, y, lag):
-        return (y.shift(lag)[x.index[0]:x.index[-1]]).corrwith(x[x.columns[0]])
+        return (y.shift(lag)[x.index[0]:x.index[-1]]).corrwith(x)
 
     def get_fs(self, names):
         return [(self.dataset[col].index[-1]-self.dataset[col].index[0])/self.dataset[col].size
