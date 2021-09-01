@@ -8,6 +8,7 @@ class Correlator():
 
     @staticmethod
     def correlate(x, y, margin):
+        y = Correlator.interpolate(y,x.index,margin)
         correlations = pd.DataFrame([Correlator.lagged_corr(x,y,lag) for lag in range(-1*int(x.size*margin),int(x.size*margin)+1)], columns=y.columns)
         delays = [correlations[col].abs().idxmax() for col in correlations]
         corrs = [round(correlations[col].iloc[delays[pos]],2) for pos, col in enumerate(correlations)]
@@ -26,3 +27,12 @@ class Correlator():
     def find_correlation(self, x, y):
         return y.corrwith(x)
 
+    @staticmethod
+    def interpolate(x, idx, margin):
+        fs = pd.infer_freq(idx)
+        T  = int(len(idx)*margin)
+        prev = pd.date_range(end=idx.min(),freq=fs, periods=T).union(idx)
+        post = pd.date_range(start=idx.max(),freq=fs, periods=T).union(prev)
+
+        new_x = x.reindex(x.index.union(post))
+        return new_x.interpolate(method='linear').loc[post]
