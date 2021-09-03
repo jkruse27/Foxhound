@@ -29,7 +29,7 @@ Também é possível utilizar um dataset próprio ao invés do EPICS. Para isso,
 * Estar no formato .csv
 * Possuir uma coluna 'datetime' contendo os tempos de amostragem de cada amostra no formato 'dd.mm.aa hh:mm'
 * Cada outra coluna corresponde a um sinal, sendo seu primeiro valor o seu nome  
-Um exemplo de dataset seguindo esse padrão pode ser visto na pasta TestData. De resto, o programa funciona de forma semelhante ao caso com as variáveis EPICS, com a excessão de que não é necessário especificar um regex para escolher os sinais com o qual a correlação será feita, pois, no momento, ela será feita com todos os outros sinais do dataset.
+  Um exemplo de dataset seguindo esse padrão pode ser visto na pasta TestData. De resto, o programa funciona de forma semelhante ao caso com as variáveis EPICS, com a excessão de que não é necessário especificar um regex para escolher os sinais com o qual a correlação será feita, pois, no momento, ela será feita com todos os outros sinais do dataset.
 
 ## Possíveis Erros
 
