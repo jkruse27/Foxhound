@@ -1,5 +1,8 @@
-*.csv
 *.pyc
 *.crt
 *.json
 Versions/*
+dist/*
+build/*
+__pycache__/*
+*.spec
