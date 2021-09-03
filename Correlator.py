@@ -14,6 +14,23 @@ class Correlator():
         corrs = [round(correlations[col].iloc[delays[pos]],2) for pos, col in enumerate(correlations)]
         
         return corrs, delays
+    
+    '''
+    @staticmethod
+    def correlate(x, y, margin):
+        y = Correlator.interpolate(y,x.index,margin)
+        delays = y.apply(lambda k: abs(sig.correlate(k, x, mode='valid'))).idxmax()-int(margin*x.size)
+        
+        new_y = [((y[col]).shift(delays.loc[col], fill_value=0))[x.index.min():x.index.max()] for col in y.columns]
+
+        print(new_y)
+
+        correlations = pd.DataFrame([Correlator.lagged_corr(x,y,lag) for lag in range(-1*int(x.size*margin),int(x.size*margin)+1)], columns=y.columns)
+        delays = [correlations[col].abs().idxmax() for col in correlations]
+        corrs = [round(correlations[col].iloc[delays[pos]],2) for pos, col in enumerate(correlations)]
+        
+        return corrs, delays
+    '''
 
     @staticmethod
     def lagged_corr(x, y, lag):

@@ -16,14 +16,14 @@ matplotlib.use('TkAgg')
 
 class App():
 
-    def __init__(self, layout, FIGSIZE_X, FIGSIZE_Y, name="Correlations", CANVAS_NAME='-CANVAS-',
+    def __init__(self, layout, FIGSIZE_X, FIGSIZE_Y, name="Foxhound", img="Imgs/foxhound.ico", CANVAS_NAME='-CANVAS-',
             DATASET='-DATASET-', MAIN_VAR='-MAIN VAR-', OTHER_VAR='-OTHER VARS-',
             CORRELATE='Correlate', PLOT='Plot', CORRELATION_SEL='-CORR-', PVS='-PVS-',
             IN='-IN-', DATE_BEG='-DATE_BEG-', DATE_END='-DATE_END-', TIME_BEG='-TIME_BEG-',
             TIME_END='-TIME_END-',SELECT='Select', MARGIN='-MARGIN-', EPICS='Use EPICS',
             SEARCH='Search', CHOOSE='Choose', NUMBER='-N_VARS-', REGEX='-REGEX-', 
             REDIRECT='-REDIRECT-', DELAY='-DELAY-'):
-        self.window = sg.Window(name, layout, resizable=True).Finalize()
+        self.window = sg.Window(name, layout, resizable=True, icon=img).Finalize()
         self.window.Maximize()
         self.CANVAS_NAME = CANVAS_NAME
         self.DATASET = DATASET
@@ -251,7 +251,7 @@ class App():
     def choose_regex(self, regex, is_EPICS):
         if(is_EPICS):
             n = self.dataset.number_of_vars(regex)
-            message = 'Número de Sinais: '+str(n)
+            message = 'Number of Signals: '+str(n)
 
             self.window.Element(self.N_VARS).Update(message)
         else:
