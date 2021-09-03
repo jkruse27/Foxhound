@@ -4,7 +4,7 @@ This has the main goal of automating the process of finding correlations among m
 
 # Como usar
 
-\* Por enquanto o executável funciona somente para windows 10.  
+\* Por enquanto o executável funciona somente para windows 10. 
 Primeiramente, basta baixar e extrair o arquivo 'Foxhound.zip' em Releases. Para abrir o aplicativo, basta executar o arquivo app.exe, presente na pasta app/ extraida. Com isso, a seguinte tela será aberta:  
 ![](Imgs/main_page.png)  
 O programa permite o uso de um dataset próprio ou das variáveis presentes no EPICS.
@@ -35,6 +35,9 @@ Um exemplo de dataset seguindo esse padrão pode ser visto na pasta TestData. De
 
 ### Erro ao abrir o dataset
 Pode significar que o dataset não segue o formato específicado, ou que nenhum dataset foi selecionado.
+
+### Erro ao inicializar EPICS
+Pode significar que a VPN não está conectada.
 
 ### Erro na seleção do tempo
 Pode significar que o tempo foi selecionado antes de um sinal principal ter sido escolhido.
