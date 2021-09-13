@@ -59,7 +59,7 @@ class Layout():
         buttons_block = [[sg.Button('Correlate')]]
 
         regex_block = [
-                [sg.Text('Examples:\n.*HLS.* for all PVs with HLS in the name\n(.*HLS.*)?(.*MARE.*) for all PVs with HLS OR MARE in the name\n')],
+                [sg.Text('Examples:\n.*HLS.* for all PVs with HLS in the name\n(.*HLS.*)?(.*MARE.*)? for all PVs with HLS OR MARE in the name\n')],
             [sg.Text("Regex: ", enable_events=True, key='-REDIRECT-'),
             sg.Input(key='-REGEX-')],
             [sg.Text(' '*75, key='-N_VARS-')]

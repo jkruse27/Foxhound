@@ -13,6 +13,8 @@ import pytz
 import webbrowser
 
 matplotlib.use('TkAgg')
+VERSION = '(V0.1.0)'
+
 
 class App():
 
@@ -23,7 +25,7 @@ class App():
             TIME_END='-TIME_END-',SELECT='Select', MARGIN='-MARGIN-', EPICS='Use EPICS',
             SEARCH='Search', CHOOSE='Choose', NUMBER='-N_VARS-', REGEX='-REGEX-', 
             REDIRECT='-REDIRECT-', DELAY='-DELAY-', ORIGINAL='-ORIG-'):
-        self.window = sg.Window(name, layout, resizable=True, icon=img).Finalize()
+        self.window = sg.Window(name+VERSION, layout, resizable=True, icon=img).Finalize()
         self.window.Maximize()
         self.CANVAS_NAME = CANVAS_NAME
         self.DATASET = DATASET
