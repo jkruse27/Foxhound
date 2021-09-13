@@ -53,25 +53,30 @@ class Layout():
                 sg.Text('Correlations'),
                 sg.Tree(data=sg.TreeData(),enable_events=True, 
                         headings=["Variable","Correlation", "Phase"],
-                        key="-CORR-", num_rows=5,col0_width=45, col_widths=[60, 15], justification="center")
+                        key="-CORR-", num_rows=5,col0_width=5,auto_size_columns=False, col_widths=[45, 10,10], justification="center")
                 ]]
 
         buttons_block = [[sg.Button('Correlate')]]
 
         regex_block = [
-            [sg.Text('. --> Any Character\n* --> Repeat 0 or more times\n() --> Capture in group')],
+                [sg.Text('Examples:\n.*HLS.* for all PVs with HLS in the name\n(.*HLS.*)?(.*MARE.*) for all PVs with HLS OR MARE in the name\n')],
             [sg.Text("Regex: ", enable_events=True, key='-REDIRECT-'),
             sg.Input(key='-REGEX-')],
             [sg.Text(' '*75, key='-N_VARS-')]
         ]
+        
+        checkbox =  [[
+                sg.Checkbox('Delay Corrected Signal:', default=True, key="-DELAY-", text_color='red',enable_events=True)],
+                [sg.Checkbox('Original Signal:', default=True, key="-ORIG-", text_color='black',enable_events=True)
+            ]]   
 
         left_side = [
             sg.Column(regex_block),
             sg.Button("Choose"),
             sg.Column(buttons_block),
             sg.Column(rank_block),
-            sg.Checkbox('Correct Delay:', default=True, key="-DELAY-", enable_events=True)
-                ]
+            sg.Column(checkbox)
+            ]
 
         self.layout = [
             var_block,

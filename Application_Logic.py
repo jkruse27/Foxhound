@@ -22,7 +22,7 @@ class App():
             IN='-IN-', DATE_BEG='-DATE_BEG-', DATE_END='-DATE_END-', TIME_BEG='-TIME_BEG-',
             TIME_END='-TIME_END-',SELECT='Select', MARGIN='-MARGIN-', EPICS='Use EPICS',
             SEARCH='Search', CHOOSE='Choose', NUMBER='-N_VARS-', REGEX='-REGEX-', 
-            REDIRECT='-REDIRECT-', DELAY='-DELAY-'):
+            REDIRECT='-REDIRECT-', DELAY='-DELAY-', ORIGINAL='-ORIG-'):
         self.window = sg.Window(name, layout, resizable=True, icon=img).Finalize()
         self.window.Maximize()
         self.CANVAS_NAME = CANVAS_NAME
@@ -46,6 +46,7 @@ class App():
         self.N_VARS = NUMBER
         self.REGEX = REGEX
         self.DELAY = DELAY
+        self.ORIGINAL = ORIGINAL
         self.REDIRECT = REDIRECT
         self.REGEX_LINK = 'https://docs.oracle.com/javase/7/docs/api/java/util/regex/Pattern.html'
         self.is_EPICS = False
@@ -66,7 +67,7 @@ class App():
         self.figure_canvas_agg.draw()
         self.figure_canvas_agg.get_tk_widget().pack(side='top', fill='both', expand=1)
 
-    def twinx_canvas(self,x,x_label,y,y_label,t=None,t_label='Time'):
+    def twinx_canvas(self,x,x_label,y,y_label,colors='r',t=None,t_label='Time'):
         self.axs1.cla()
 
         if(self.ax3 != None):
@@ -84,18 +85,21 @@ class App():
             self.axs1.plot(t,x,label=x_label)
             self.axs1.set_ylabel(x_label)
             self.axs1.set_xlabel(t_label)
+        
 
         if(t==None):
-            self.ax3.plot(y,color='r',label=y_label)
+            for signal, color in zip(y,colors):
+                self.ax3.plot(signal,color=color,label=y_label)
             self.ax3.set_ylabel(y_label, rotation=-90,labelpad=7)
         else:
-            self.ax3.plot(t,y,color='r',label=y_label)
+            for signal, color in zip(y,colors):
+                self.ax3.plot(t,signal,color=color,label=y_label)
             self.ax3.set_ylabel(y_label, rotation=-90,labelpad=7)
 
         k = int(len(self.axs1.xaxis.get_ticklabels())/5)
 
         self.axs1.yaxis.label.set_color('blue')
-        self.ax3.yaxis.label.set_color('red')
+        self.ax3.yaxis.label.set_color(colors[0])
 
         for n, label in enumerate(self.axs1.xaxis.get_ticklabels()):
             if n % k != 0:
@@ -177,7 +181,11 @@ class App():
                         )
                     )
 
-    def choose_corr(self, main_var, begin_date, end_date, margin, is_delayed, is_EPICS):
+    def choose_corr(self, main_var, begin_date, end_date, margin, is_delayed, is_original, is_EPICS):
+        if(not (is_delayed or is_original)):
+            sg.Popup('Selecione ao menos um entre: Original Signal e Delay Corrected Signal')
+            return
+
         selected_row = self.window.Element(self.CORR).SelectedRows[0]
         selected_row = self.window.Element(self.CORR).TreeData.tree_dict[selected_row].values[0]
         dt = end_date - begin_date
@@ -190,11 +198,17 @@ class App():
             y = self.dataset.get_series(selected_row)
             x = self.dataset.get_series(main_var, begin_date,end_date)
 
-        if(is_delayed):
-            y = y.shift(self.delays[selected_row])    
+        y1 = []
+        colors = []
 
-        y = y[begin_date:end_date]
-        self.twinx_canvas(x,main_var,y,selected_row,t=None,t_label='Time')
+        if(is_delayed):
+            y1.append(y.shift(self.delays[selected_row])[begin_date:end_date])
+            colors.append('r')
+        if(is_original):
+            y1.append(y[begin_date:end_date])
+            colors.append('k')
+
+        self.twinx_canvas(x,main_var,y1,selected_row,colors=colors,t=None,t_label='Time')
 
     def open_in_browser(self, link):
         webbrowser.open(link, new=2)
@@ -285,7 +299,7 @@ class App():
 
         elif event == self.CORR:
             try:
-                self.choose_corr(self.main_variable, self.begin_date, self.end_date, float(values[self.MARGIN]), values[self.DELAY], self.is_EPICS)
+                self.choose_corr(self.main_variable, self.begin_date, self.end_date, float(values[self.MARGIN]), values[self.DELAY], values[self.ORIGINAL], self.is_EPICS)
             except:
                 sg.Popup('Erro ao plotar variavel')
 
