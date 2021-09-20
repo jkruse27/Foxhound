@@ -4,8 +4,8 @@ This has the main goal of automating the process of finding correlations among m
 
 # Como usar
 
-\* Por enquanto o executável funciona somente para windows 10. 
-Primeiramente, basta baixar e extrair o arquivo 'Foxhound.zip' em Releases. Para abrir o aplicativo, basta executar o arquivo Foxhound.exe, presente na pasta Foxhound/ extraida. Com isso, a seguinte tela será aberta:  
+\* Por enquanto o executável funciona somente para windows 10 (veersão para Linux sendo testada ainda). 
+Primeiramente, basta baixar e extrair o arquivo 'Foxhound_Windows.zip' em Releases. Para abrir o aplicativo, basta executar o arquivo Foxhound.exe, presente na pasta Foxhound/ extraida (para linux, o arquivo Foxhound_Linux pode ser executado diretamente). Com isso, a seguinte tela será aberta:  
 ![](Imgs/main_page.png)  
 O programa permite o uso de um dataset próprio ou das variáveis presentes no EPICS.
 

@@ -240,8 +240,13 @@ class App():
     def get_var(self, is_EPICS, main_var):
         beg = self.convert_time(is_EPICS, self.begin_date)
         end = self.convert_time(is_EPICS, self.end_date)
-       
-        x = self.dataset.get_EPICS_pv([main_var], beg, end)
+        if(is_EPICS): 
+            x = self.dataset.get_EPICS_pv([main_var], beg, end)
+        else:
+            if(beg != None and end != None):
+                x = self.dataset.get_series(main_var, beg, end)
+            else:
+                x = self.dataset.get_series(main_var)
         return x
 
     def choose_pv(self, is_EPICS, beg_date, end_date):
