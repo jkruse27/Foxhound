@@ -57,7 +57,8 @@ class App():
         self.begin_date = None
         self.end_date = None
         self.ax3 = None
-        
+        self.main_variable = None
+
         self.init_canvas(FIGSIZE_X, FIGSIZE_Y)
 
 
@@ -230,14 +231,48 @@ class App():
 
         self.window.Element(self.CORR).Update(values=self.create_tree(list(map(list, zip(names, corrs, delays)))))
 
-    def choose_pv(self, is_EPICS):
+    def convert_time(self, is_EPICS, time):
+        if(is_EPICS):
+            if(time != None):
+                return datetime(time.year,time.month,time.day,hour=time.hour,minute=time.minute, tzinfo=pytz.timezone('America/Sao_Paulo'))
+        return time
+
+    def get_var(self, is_EPICS, main_var):
+        beg = self.convert_time(is_EPICS, self.begin_date)
+        end = self.convert_time(is_EPICS, self.end_date)
+       
+        x = self.dataset.get_EPICS_pv([main_var], beg, end)
+        return x
+
+    def choose_pv(self, is_EPICS, beg_date, end_date):
         selected_row = self.window.Element(self.PVS).SelectedRows[0]
         x_label = self.window.Element(self.PVS).TreeData.tree_dict[selected_row].values
 
-        if(is_EPICS):
-            x = self.dataset.get_EPICS_pv([x_label])
-        else:
-            x = self.dataset.get_series(x_label)
+
+        if(end_date != ' 00:00'):
+            self.end_date = datetime.strptime(end_date,"%Y-%m-%d %H:%M")
+        if(beg_date != ' 00:00'):
+            self.begin_date = datetime.strptime(beg_date,"%Y-%m-%d %H:%M")
+        elif(self.end_date == None):
+            dt = timedelta(days=7)
+            self.begin_date = datetime.today()-dt
+
+        x = self.get_var(is_EPICS, x_label)
+
+        if(beg_date == ' 00:00'):
+            d = x.index[0].date().isoformat()
+            t = x.index[0].strftime('%H:%M')
+
+            self.begin_date = self.convert_time(is_EPICS,x.index[0])
+            self.window.Element(self.DATE_BEG).Update(value=d)
+            self.window.Element(self.TIME_BEG).Update(value=t)
+        if(end_date == ' 00:00'):
+            d = x.index[-1].date().isoformat()
+            t = x.index[-1].strftime('%H:%M')
+            self.end_date = self.convert_time(is_EPICS,x.index[-1])
+
+            self.window.Element(self.DATE_END).Update(value=d)
+            self.window.Element(self.TIME_END).Update(value=t)
 
         self.update_canvas(x,x_label,t=None,t_label='Time')
         self.main_variable = x_label
@@ -252,17 +287,18 @@ class App():
             self.end_date = datetime.strptime(end_date,"%Y-%m-%d %H:%M")
         else:
             self.end_date = None
-        
-        if(is_EPICS):
-            tmp = self.begin_date
-            self.begin_date = datetime(tmp.year,tmp.month,tmp.day,hour=tmp.hour,minute=tmp.minute, tzinfo=pytz.timezone('America/Sao_Paulo'))
-            tmp = self.end_date
-            self.end_date = datetime(tmp.year,tmp.month,tmp.day,hour=tmp.hour,minute=tmp.minute, tzinfo=pytz.timezone('America/Sao_Paulo'))
-            x = self.dataset.get_EPICS_pv([main_var], self.begin_date,self.end_date)
-        else:
-            x = self.dataset.get_series(main_var, self.begin_date,self.end_date)
 
-        self.update_canvas(x,main_var,t=None,t_label='Time')
+        self.begin_date = self.convert_time(is_EPICS, self.begin_date)
+        self.end_date = self.convert_time(is_EPICS, self.end_date)
+        if(main_var != None): 
+            x = self.get_var(is_EPICS, main_var)
+            self.update_canvas(x,main_var,t=None,t_label='Time')
+
+    def clean_regex(self, regex):
+        if(regex==''):
+            return '.*'
+        
+        return '?'.join([*['(.*'+'.*'.join(el.split('&'))+'.*)' for el in regex.split()], ''])
 
     def choose_regex(self, regex, is_EPICS):
         if(is_EPICS):
@@ -313,27 +349,29 @@ class App():
 
         elif event == self.PVS:
             try:
-                self.choose_pv(self.is_EPICS)
+                beg = values[self.DATE_BEG].strip()+" "+values[self.TIME_BEG].strip()
+                end = values[self.DATE_END].strip()+" "+values[self.TIME_END].strip()
+                self.choose_pv(self.is_EPICS, beg, end)
             except:
                 sg.Popup('Erro na escolha do sinal principal')
                
         elif event==self.CORRELATE:
             try:
-                self.correlate_vars(self.main_variable, self.begin_date, self.end_date, float(values[self.MARGIN]), values[self.REGEX], self.is_EPICS)
+                self.correlate_vars(self.main_variable, self.begin_date, self.end_date, float(values[self.MARGIN]), self.clean_regex(values[self.REGEX]), self.is_EPICS)
             except:
                 sg.Popup('Erro na correlação')
 
         elif event==self.SELECT:
             try:
-                    beg = values[self.DATE_BEG].strip()+" "+values[self.TIME_BEG].strip()
-                    end = values[self.DATE_END].strip()+" "+values[self.TIME_END].strip()
-                    self.select_time(self.main_variable, beg, end, self.is_EPICS)
+                beg = values[self.DATE_BEG].strip()+" "+values[self.TIME_BEG].strip()
+                end = values[self.DATE_END].strip()+" "+values[self.TIME_END].strip()
+                self.select_time(self.main_variable, beg, end, self.is_EPICS)
             except:
                 sg.Popup('Erro na seleção do tempo')
 
         elif event == self.CHOOSE:
             try:
-                self.choose_regex(values[self.REGEX], self.is_EPICS)
+                self.choose_regex(self.clean_regex(values[self.REGEX]), self.is_EPICS)
             except:
                 sg.Popup('Erro na contagem de variáveis')
 

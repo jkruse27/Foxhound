@@ -15,13 +15,11 @@ class Layout():
                     sg.Button('Search')
                 ],
                 [
-                    sg.Text(' '*70),
+                    sg.Text(' '*32),
                     sg.Input(key='-DATE_BEG-', size=(10,1)),
                     sg.CalendarButton('Begin Date',key="-CAL_BEG-", format='%Y-%m-%d'), 
-                    sg.Input(key='-TIME_BEG-', size=(5,1), default_text="00:00")
-                ],
-                [
-                    sg.Text(' '*70),
+                    sg.Input(key='-TIME_BEG-', size=(5,1), default_text="00:00"),
+                    sg.Text(' '*15),
                     sg.Input(key='-DATE_END-', size=(10,1)),
                     sg.CalendarButton(' End Date ',key="-CAL_END-", format='%Y-%m-%d'),
                     sg.Input(key='-TIME_END-', size=(5,1), default_text="00:00")
@@ -29,7 +27,7 @@ class Layout():
                 [
                     sg.Text(' '*80),
                     sg.Text('Margin (%): '),
-                    sg.Input(key='-MARGIN-', size=(5,1), default_text='0.2')
+                    sg.Input(key='-MARGIN-', size=(5,1), default_text='0.05')
                 ],
                 [sg.Text(' '*94),sg.Button('Select')]
         ]
@@ -59,7 +57,7 @@ class Layout():
         buttons_block = [[sg.Button('Correlate')]]
 
         regex_block = [
-                [sg.Text('Examples:\n.*HLS.* for all PVs with HLS in the name\n(.*HLS.*)?(.*MARE.*)? for all PVs with HLS OR MARE in the name\n')],
+                [sg.Text('Write the words you are looking for separated by spaces.\n\nExample:\n   HLS MARE for all PVs with HLS OR MARE in the name\n')],
             [sg.Text("Regex: ", enable_events=True, key='-REDIRECT-'),
             sg.Input(key='-REGEX-')],
             [sg.Text(' '*75, key='-N_VARS-')]

@@ -5,10 +5,12 @@ import pandas as pd
 from datetime import datetime, timedelta
 import requests
 import ast
+from requests.packages.urllib3.exceptions import InsecureRequestWarning
 
 class EPICS_Requests:
 
     def __init__(self):
+        requests.packages.urllib3.disable_warnings(InsecureRequestWarning)
         self.PVS_URL = 'http://10.0.38.42/mgmt/bpl/getAllPVs'
         self.ARCHIVE_URL = 'http://10.0.38.42/retrieval/data/getData.json'
         self.index = -1
@@ -28,11 +30,15 @@ class EPICS_Requests:
         return ast.literal_eval(response.text)
 
     def  get_pv(self, pv_list, dt_init, dt_end):
-        if(dt_init != None and dt_end != None):
+        timespan = {}
+        if(dt_init != None): 
             dt_init = (dt_init - dt_init.utcoffset()).replace(tzinfo=None).isoformat(timespec='milliseconds')+'Z'
+            timespan['init'] = dt_init
+            time1 = True
+        if(dt_end != None):
             dt_end = (dt_end - dt_end.utcoffset()).replace(tzinfo=None).isoformat(timespec='milliseconds')+'Z'
-            timespam = {"init": dt_init, "end": dt_end}
-            time = True
+            timespam["end"] = dt_end
+            time2 = True
         else:
             time = False
             print('Erro com os tempos!')
@@ -43,15 +49,15 @@ class EPICS_Requests:
         res = []
 
         for pv in pv_list:
-    
             if optimize:
                 pv_query = f'mean_{int(60*mean_minutes)}({pv})'
             else:
                 pv_query = pv
-            if(time == True):
-                query = {'pv': pv_query, 'from': dt_init, 'to': dt_end}
-            else:
-                query = {'pv': pv_query}
+            query = {'pv': pv_query}
+            if(time1 == True):
+                query['from'] = dt_init
+            if(time2 == True):
+                query['to'] = dt_end
             response_as_json = {}
             res.append(requests.get(self.ARCHIVE_URL, params=query).json())
 
