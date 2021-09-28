@@ -52,7 +52,8 @@ class App():
         self.REDIRECT = REDIRECT
         self.REGEX_LINK = 'https://docs.oracle.com/javase/7/docs/api/java/util/regex/Pattern.html'
         self.is_EPICS = False
-
+        self.RESIZE = '-RESIZE-'
+        self.current_size = self.window.size
 
         self.begin_date = None
         self.end_date = None
@@ -65,7 +66,7 @@ class App():
     def init_canvas(self, FIGSIZE_X=8,FIGSIZE_Y=8):
         self.FIGSIZE_X = FIGSIZE_X
         self.FIGSIZE_Y = FIGSIZE_Y
-        self.fig, self.axs1 = plt.subplots(figsize=(FIGSIZE_X,FIGSIZE_Y))
+        self.fig, self.axs1 = plt.subplots(figsize=(FIGSIZE_X/100,FIGSIZE_Y/100), dpi=100)
         self.figure_canvas_agg = FigureCanvasTkAgg(self.fig, self.window[self.CANVAS_NAME].TKCanvas)
         self.figure_canvas_agg.draw()
         self.figure_canvas_agg.get_tk_widget().pack(side='top', fill='both', expand=1)
@@ -110,6 +111,7 @@ class App():
 
         self.window[self.CANVAS_NAME].TKCanvas.delete('all')
         self.figure_canvas_agg.draw()
+        self.figure_canvas_agg.get_tk_widget().pack(side='top', fill='both', expand=1)
 
 
     def update_canvas(self,x,x_label,t=None,t_label='Time'):
@@ -140,6 +142,7 @@ class App():
 
         self.window[self.CANVAS_NAME].TKCanvas.delete('all')
         self.figure_canvas_agg.draw()
+        self.figure_canvas_agg.get_tk_widget().pack(side='top', fill='both', expand=1)
 
 
     def create_tree(self, values, index=None):
@@ -314,7 +317,6 @@ class App():
         else:
             self.window.Element(self.N_VARS).Update('O dataset próprio realiza a comparação com todas as variáveis')
 
-
     def iteration(self):
 
         event, values = self.window.read()
@@ -341,10 +343,10 @@ class App():
                 sg.Popup('Erro ao pesquisar variáveis')
 
         elif event == self.CORR:
-            try:
-                self.choose_corr(self.main_variable, self.begin_date, self.end_date, float(values[self.MARGIN]), values[self.DELAY], values[self.ORIGINAL], self.is_EPICS)
-            except:
-                sg.Popup('Erro ao plotar variavel')
+#            try:
+            self.choose_corr(self.main_variable, self.begin_date, self.end_date, float(values[self.MARGIN]), values[self.DELAY], values[self.ORIGINAL], self.is_EPICS)
+ #           except:
+ #               sg.Popup('Erro ao plotar variavel')
 
         elif event == self.REDIRECT:
             try:

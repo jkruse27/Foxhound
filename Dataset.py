@@ -55,7 +55,7 @@ class Dataset():
 
         corrs, delays = Correlator.correlate(x,y,margin)
         
-        delays = [delay-int(x.size*margin) for delay in delays]
+        #delays = [delay-int(x.size*margin) for delay in delays]
 
         return delays, corrs, y.columns
 
@@ -71,7 +71,7 @@ class Dataset():
         y = self.dataset.drop(x_label,axis=1)[begin-margin*dt:end+margin*dt]
 
         corrs, delays = Correlator.correlate(x,y,margin)
-        delays = [delay-int(x.size*margin) for delay in delays]
+        #delays = [delay-int(x.size*margin) for delay in delays]
 
         return delays, corrs, y.columns
 
