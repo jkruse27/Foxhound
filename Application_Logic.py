@@ -1,6 +1,6 @@
 import PySimpleGUI as sg
 import os.path
-from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
+from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg, NavigationToolbar2Tk
 import pandas as pd
 import matplotlib.pyplot as plt
 import numpy as np
@@ -9,12 +9,16 @@ import scipy.signal as sig
 import matplotlib
 from Dataset import *
 from datetime import *
+from Plots import *
 import pytz
 import webbrowser
 
 matplotlib.use('TkAgg')
 VERSION = '(V0.1.0)'
 
+class Toolbar(NavigationToolbar2Tk):
+    def __init__(self, *args, **kwargs):
+        super(Toolbar, self).__init__(*args, **kwargs)
 
 class App():
 
@@ -24,7 +28,7 @@ class App():
             IN='-IN-', DATE_BEG='-DATE_BEG-', DATE_END='-DATE_END-', TIME_BEG='-TIME_BEG-',
             TIME_END='-TIME_END-',SELECT='Select', MARGIN='-MARGIN-', EPICS='Use EPICS',
             SEARCH='Search', CHOOSE='Choose', NUMBER='-N_VARS-', REGEX='-REGEX-', 
-            REDIRECT='-REDIRECT-', DELAY='-DELAY-', ORIGINAL='-ORIG-'):
+            REDIRECT='-REDIRECT-', DELAY='-DELAY-', ORIGINAL='-ORIG-', CLEAR='Clear'):
         self.window = sg.Window(name+VERSION, layout, resizable=True, icon=img).Finalize()
         self.window.Maximize()
         self.CANVAS_NAME = CANVAS_NAME
@@ -48,6 +52,7 @@ class App():
         self.N_VARS = NUMBER
         self.REGEX = REGEX
         self.DELAY = DELAY
+        self.CLEAR = CLEAR
         self.ORIGINAL = ORIGINAL
         self.REDIRECT = REDIRECT
         self.REGEX_LINK = 'https://docs.oracle.com/javase/7/docs/api/java/util/regex/Pattern.html'
@@ -60,90 +65,7 @@ class App():
         self.ax3 = None
         self.main_variable = None
 
-        self.init_canvas(FIGSIZE_X, FIGSIZE_Y)
-
-
-    def init_canvas(self, FIGSIZE_X=8,FIGSIZE_Y=8):
-        self.FIGSIZE_X = FIGSIZE_X
-        self.FIGSIZE_Y = FIGSIZE_Y
-        self.fig, self.axs1 = plt.subplots(figsize=(FIGSIZE_X/100,FIGSIZE_Y/100), dpi=100)
-        self.figure_canvas_agg = FigureCanvasTkAgg(self.fig, self.window[self.CANVAS_NAME].TKCanvas)
-        self.figure_canvas_agg.draw()
-        self.figure_canvas_agg.get_tk_widget().pack(side='top', fill='both', expand=1)
-
-    def twinx_canvas(self,x,x_label,y,y_label,colors='r',t=None,t_label='Time'):
-        self.axs1.cla()
-
-        if(self.ax3 != None):
-            self.ax3.remove()
-
-        self.ax3 = self.axs1.twinx()
-
-        self.row = x_label
-
-        if(t==None):
-            self.axs1.plot(x,label=x_label)
-            self.axs1.set_ylabel(x_label)
-            self.axs1.set_xlabel(t_label)
-        else:
-            self.axs1.plot(t,x,label=x_label)
-            self.axs1.set_ylabel(x_label)
-            self.axs1.set_xlabel(t_label)
-        
-
-        if(t==None):
-            for signal, color in zip(y,colors):
-                self.ax3.plot(signal,color=color,label=y_label)
-            self.ax3.set_ylabel(y_label, rotation=-90,labelpad=7)
-        else:
-            for signal, color in zip(y,colors):
-                self.ax3.plot(t,signal,color=color,label=y_label)
-            self.ax3.set_ylabel(y_label, rotation=-90,labelpad=7)
-
-        k = int(len(self.axs1.xaxis.get_ticklabels())/5)
-
-        self.axs1.yaxis.label.set_color('blue')
-        self.ax3.yaxis.label.set_color(colors[0])
-
-        for n, label in enumerate(self.axs1.xaxis.get_ticklabels()):
-            if n % k != 0:
-                label.set_visible(False)
-
-        self.window[self.CANVAS_NAME].TKCanvas.delete('all')
-        self.figure_canvas_agg.draw()
-        self.figure_canvas_agg.get_tk_widget().pack(side='top', fill='both', expand=1)
-
-
-    def update_canvas(self,x,x_label,t=None,t_label='Time'):
-        self.row = x_label
-
-        self.axs1.clear()
-
-        if(self.ax3!=None):
-            self.ax3.remove()
-            self.ax3 = None
-
-        if(t==None):
-            self.axs1.plot(x,label=x_label)
-            self.axs1.set_ylabel(x_label)
-            self.axs1.set_xlabel(t_label)
-        else:
-            self.axs1.plot(t,x,label=x_label)
-            self.axs1.set_ylabel(x_label)
-            self.axs1.set_xlabel(t_label)
-
-        k = int(len(self.axs1.xaxis.get_ticklabels())/5)
-
-        for n, label in enumerate(self.axs1.xaxis.get_ticklabels()):
-            if n % k != 0:
-                label.set_visible(False)
-
-        self.axs1.yaxis.label.set_color('blue')
-
-        self.window[self.CANVAS_NAME].TKCanvas.delete('all')
-        self.figure_canvas_agg.draw()
-        self.figure_canvas_agg.get_tk_widget().pack(side='top', fill='both', expand=1)
-
+        self.plots = Plots(self.window[self.CANVAS_NAME].TKCanvas,FIGSIZE_X, FIGSIZE_Y)
 
     def create_tree(self, values, index=None):
         new_tree = sg.TreeData()
@@ -214,7 +136,7 @@ class App():
             y1.append(y[begin_date:end_date])
             colors.append('k')
 
-        self.twinx_canvas(x,main_var,y1,selected_row,colors=colors,t=None,t_label='Time')
+        self.plots.twinx_canvas(x,main_var,y1,selected_row,colors=colors,t=None,t_label='Time')
 
     def open_in_browser(self, link):
         webbrowser.open(link, new=2)
@@ -282,7 +204,7 @@ class App():
             self.window.Element(self.DATE_END).Update(value=d)
             self.window.Element(self.TIME_END).Update(value=t)
 
-        self.update_canvas(x,x_label,t=None,t_label='Time')
+        self.plots.update_canvas(x,x_label,t=None,t_label='Time')
         self.main_variable = x_label
 
     def select_time(self, main_var, begin_date, end_date, is_EPICS):
@@ -300,7 +222,21 @@ class App():
         self.end_date = self.convert_time(is_EPICS, self.end_date)
         if(main_var != None): 
             x = self.get_var(is_EPICS, main_var)
-            self.update_canvas(x,main_var,t=None,t_label='Time')
+            self.plots.update_canvas(x,main_var,t=None,t_label='Time')
+            d = x.index[0].date().isoformat()
+            t = x.index[0].strftime('%H:%M')
+
+            self.begin_date = self.convert_time(is_EPICS,x.index[0])
+            self.window.Element(self.DATE_BEG).Update(value=d)
+            self.window.Element(self.TIME_BEG).Update(value=t)
+
+            d = x.index[-1].date().isoformat()
+            t = x.index[-1].strftime('%H:%M')
+            self.end_date = self.convert_time(is_EPICS,x.index[-1])
+
+            self.window.Element(self.DATE_END).Update(value=d)
+            self.window.Element(self.TIME_END).Update(value=t)
+
 
     def clean_regex(self, regex):
         if(regex==''):
@@ -343,10 +279,10 @@ class App():
                 sg.Popup('Erro ao pesquisar variáveis')
 
         elif event == self.CORR:
-#            try:
-            self.choose_corr(self.main_variable, self.begin_date, self.end_date, float(values[self.MARGIN]), values[self.DELAY], values[self.ORIGINAL], self.is_EPICS)
- #           except:
- #               sg.Popup('Erro ao plotar variavel')
+            try:
+                self.choose_corr(self.main_variable, self.begin_date, self.end_date, float(values[self.MARGIN]), values[self.DELAY], values[self.ORIGINAL], self.is_EPICS)
+            except:
+                sg.Popup('Erro ao plotar variavel')
 
         elif event == self.REDIRECT:
             try:
@@ -370,8 +306,11 @@ class App():
 
         elif event==self.SELECT:
             try:
-                beg = values[self.DATE_BEG].strip()+" "+values[self.TIME_BEG].strip()
-                end = values[self.DATE_END].strip()+" "+values[self.TIME_END].strip()
+                if(self.plots.selected()):
+                    beg, end = self.plots.get_times()
+                else:
+                    beg = values[self.DATE_BEG].strip()+" "+values[self.TIME_BEG].strip()
+                    end = values[self.DATE_END].strip()+" "+values[self.TIME_END].strip()
                 self.select_time(self.main_variable, beg, end, self.is_EPICS)
             except:
                 sg.Popup('Erro na seleção do tempo')
@@ -382,6 +321,11 @@ class App():
             except:
                 sg.Popup('Erro na contagem de variáveis')
 
+        elif event == self.CLEAR:
+            try:
+                self.plots.clear()
+            except:
+                sg.Popup('Erro ao Excluir Marcadores')
         return 1
 
     def quit(self):

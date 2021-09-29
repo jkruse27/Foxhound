@@ -9,6 +9,7 @@ class Layout():
         ctypes.windll.user32.SetProcessDPIAware()   # Set unit of GUI to pixels
         w, h = sg.Window.get_screen_size()
         tw, th = self.window_dimension(font)
+        im_w, im_h = self.get_fig_size() 
 
         search_block = [
                 [
@@ -39,7 +40,7 @@ class Layout():
                     sg.Text('Margin (%): '),
                     sg.Input(key='-MARGIN-', size=(5,1), default_text='0.2')
                 ],
-                [sg.Text(' ', size=(int(tw/3), 1)),sg.Button('Select')]
+                [sg.Text(' ', size=(int(tw/3.2), 1)),sg.Button('Select'),sg.Button('Clear')]
         ]
 
         select_var_block = [
@@ -54,7 +55,7 @@ class Layout():
         var_block = [sg.Column(search_block, justification='left'), sg.Column(select_var_block, justification='center')]
 
         plt_layout = [
-            [sg.Canvas(key='-CANVAS-')]
+            [sg.Canvas(key='-CANVAS-', size=(im_w, im_h))]
         ]
 
         rank_block = [
