@@ -61,6 +61,7 @@ class App():
         self.THREAD = '-THREAD-'
         self.TWINX = '-TWINX-'
         self.UPDATE = '-UPDATE-'
+        self.INITIALIZE = '-INITIALIZE-'
         self.REGEX_LINK = 'https://docs.oracle.com/javase/7/docs/api/java/util/regex/Pattern.html'
         self.is_EPICS = False
         self.RESIZE = '-RESIZE-'
@@ -101,12 +102,11 @@ class App():
             self.dataset = Dataset(name)    
             self.window.Element(self.PVS).Update(values=self.create_tree(self.dataset.get_columns()))
 
-    def initialize_EPICS(self):
+    def initialize_EPICS(self, window):
         self.is_EPICS = True
-        self.window.Element(self.DATASET).Update(value='EPICS')
-        self.dataset = Dataset()
-        self.create_from_EPICS()
-        write_event_value(self.THREAD, '*** The thread says.... "I am finished" ***')
+        window.Element(self.DATASET).Update(value='EPICS')
+        self.dataset.update_pv_names(regex=None,limit=100)
+        window.write_event_value(self.INITIALIZE, '*** The thread says.... "I am finished" ***')
 
     def update_main_list(self, text, is_EPICS, clicked=False):
         if(is_EPICS and clicked):
@@ -271,6 +271,7 @@ class App():
         sg.popup_animated(None)                     # stop animination in case one is running
         self.running = False
         self.thread = None  # reset variables for next run
+        self.timeout = None
 
     def iteration(self):
 
@@ -287,8 +288,16 @@ class App():
 
         elif event == self.EPICS:
             try:
-                self.initialize_EPICS()
+                if(self.thread == None):
+                    self.dataset = Dataset()
+                    self.thread = threading.Thread(target=self.initialize_EPICS, args=(self.window,), daemon=True)
+                    self.thread.start()
+                    self.timeout = 100
+                    sg.popup_animated(sg.DEFAULT_BASE64_LOADING_GIF, background_color='white', transparent_color='white', time_between_frames=self.timeout)
+                    self.running = True
+                #self.initialize_EPICS()
             except:
+                self.stop_loading()
                 sg.Popup('Erro ao inicializar EPICS')
 
         elif event == self.IN or event == self.SEARCH:
@@ -303,7 +312,7 @@ class App():
                     sg.Popup('Selecione ao menos um entre: Original Signal e Delay Corrected Signal')
 
                 elif(self.thread == None):
-                    (self.main_variable, self.begin_date, self.end_date, float(values[self.MARGIN]), values[self.DELAY], values[self.ORIGINAL], self.is_EPICS)
+                    #(self.main_variable, self.begin_date, self.end_date, float(values[self.MARGIN]), values[self.DELAY], values[self.ORIGINAL], self.is_EPICS)
                     self.thread = threading.Thread(target=self.choose_corr, args=(self.main_variable, 
                                                                                 self.begin_date, 
                                                                                 self.end_date, 
@@ -331,7 +340,7 @@ class App():
                 if(self.thread == None):
                     beg = values[self.DATE_BEG].strip()+" "+values[self.TIME_BEG].strip()
                     end = values[self.DATE_END].strip()+" "+values[self.TIME_END].strip()
-                    (self.is_EPICS, beg, end)
+                    #(self.is_EPICS, beg, end)
                     self.thread = threading.Thread(target=self.choose_pv, args=(self.is_EPICS, 
                                                                        beg,
                                                                        end, 
@@ -371,6 +380,13 @@ class App():
         elif event == self.TWINX:
             try:
                 self.plots.twinx_canvas(*values[self.TWINX])
+                self.stop_loading()
+            except:
+                pass
+
+        elif event == self.INITIALIZE:
+            try:
+                self.window.Element(self.PVS).Update(values=self.create_tree(self.dataset.get_columns()))
                 self.stop_loading()
             except:
                 pass
