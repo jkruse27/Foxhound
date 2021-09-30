@@ -69,7 +69,7 @@ class Layout():
             [sg.Text("Regex: ", enable_events=True, key='-REDIRECT-'),
             sg.Input(key='-REGEX-', size=(int(tw/4),1)),
             sg.Button("Choose")],
-            [sg.Text(' ', key='-N_VARS-')]
+            [sg.Text(' '*100, key='-N_VARS-')]
         ]
         
         checkbox =  [
