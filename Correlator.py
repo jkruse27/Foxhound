@@ -18,7 +18,7 @@ class Correlator():
         return corrs, delays
     '''
     @staticmethod
-    def correlate(x, y, margin):
+    def correlate(x, y, margin, method='pearson'):
         y = Correlator.interpolate(y,x.index,margin)
         beg, end = (x.index.min(), x.index.max())
 
@@ -31,10 +31,13 @@ class Correlator():
 
         new_lags = list(range(-1*max(log_lags),max(log_lags)+1))
 
-        vals = pd.DataFrame([Correlator.lagged_corr(x,y,lag) for lag in log_lags]).apply(lambda s: inter.make_interp_spline(log_lags, abs(s),k=3)(new_lags))
+        vals = pd.DataFrame([Correlator.lagged_corr(x,y,lag,method) for lag in log_lags]).apply(lambda s: inter.make_interp_spline(log_lags, abs(s),k=3)(new_lags))
         peaks = vals.apply(lambda s: pd.Series([new_lags[i] for i in sig.find_peaks(s)[0]]+[new_lags[max(range(len(s)), key=s.__getitem__)]]).drop_duplicates())
 
-        peak_corr = pd.DataFrame(np.array([[x.corr((y[col].shift(int(peak)))[beg:end]) if not pd.isna(peak) else 0 for peak in peaks[col]] for col in peaks]).transpose(), columns=y.columns) 
+        if(method in ['pearson', 'kendall', 'spearman']):
+            peak_corr = pd.DataFrame(np.array([[x.corr((y[col].shift(int(peak)))[beg:end], method=method) if not pd.isna(peak) else 0 for peak in peaks[col]] for col in peaks]).transpose(), columns=y.columns) 
+        else:
+            pass
 
         dela = [peak_corr[col].abs().idxmax() for col in peak_corr]
         delays = [int(peaks[col].iloc[dela[pos]]) for pos, col in enumerate(peak_corr)]
@@ -43,8 +46,11 @@ class Correlator():
         return corrs, delays
 
     @staticmethod
-    def lagged_corr(x, y, lag):
-        return (y.shift(lag)[x.index[0]:x.index[-1]]).corrwith(x)
+    def lagged_corr(x, y, lag, method='pearson'):
+        if(method in ['pearson', 'kendall', 'spearman']):
+            return (y.shift(lag)[x.index[0]:x.index[-1]]).corrwith(x, method=method)
+        else:
+            return None
 
     @staticmethod
     def find_delays(x, y):

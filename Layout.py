@@ -75,7 +75,7 @@ class Layout():
         checkbox =  [
                 [sg.Text(' ')],
                 [sg.Text(' ')],
-                [sg.Button('Correlate')],
+                [sg.Combo(['Pearson', 'Spearman', 'Kendall', 'Robust'], default_value='Pearson',key='-METHOD-'), sg.Button('Correlate')],
                 [sg.Checkbox('Delay Corrected Signal', default=True, key="-DELAY-", text_color='red',enable_events=True)],
                 [sg.Checkbox('Original Signal', default=True, key="-ORIG-", text_color='black',enable_events=True)
             ]]   

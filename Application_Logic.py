@@ -30,7 +30,7 @@ class App():
             IN='-IN-', DATE_BEG='-DATE_BEG-', DATE_END='-DATE_END-', TIME_BEG='-TIME_BEG-',
             TIME_END='-TIME_END-',SELECT='Select', MARGIN='-MARGIN-', EPICS='Use EPICS',
             SEARCH='Search', CHOOSE='Choose', NUMBER='-N_VARS-', REGEX='-REGEX-', 
-            REDIRECT='-REDIRECT-', DELAY='-DELAY-', ORIGINAL='-ORIG-', CLEAR='Clear'):
+            REDIRECT='-REDIRECT-', DELAY='-DELAY-', ORIGINAL='-ORIG-', CLEAR='Clear', METHOD='-METHOD-'):
         self.window = sg.Window(name+VERSION, layout, resizable=True, icon=img).Finalize()
         self.window.Maximize()
         self.CANVAS_NAME = CANVAS_NAME
@@ -39,6 +39,7 @@ class App():
         self.OTHER_VARS = OTHER_VAR
         self.CORRELATE=CORRELATE
         self.PLOT = PLOT
+        self.METHOD = METHOD
         self.CORR = CORRELATION_SEL
         self.DATE_BEG = DATE_BEG
         self.DATE_END = DATE_END
@@ -58,6 +59,8 @@ class App():
         self.ORIGINAL = ORIGINAL
         self.REDIRECT = REDIRECT
         self.THREAD = '-THREAD-'
+        self.TWINX = '-TWINX-'
+        self.UPDATE = '-UPDATE-'
         self.REGEX_LINK = 'https://docs.oracle.com/javase/7/docs/api/java/util/regex/Pattern.html'
         self.is_EPICS = False
         self.RESIZE = '-RESIZE-'
@@ -117,10 +120,6 @@ class App():
                     )
 
     def choose_corr(self, main_var, begin_date, end_date, margin, is_delayed, is_original, is_EPICS, window):
-        if(not (is_delayed or is_original)):
-            sg.Popup('Selecione ao menos um entre: Original Signal e Delay Corrected Signal')
-            return
-
         selected_row = self.window.Element(self.CORR).SelectedRows[0]
         selected_row = self.window.Element(self.CORR).TreeData.tree_dict[selected_row].values[0]
         dt = end_date - begin_date
@@ -143,19 +142,19 @@ class App():
             y1.append(y[begin_date:end_date])
             colors.append('k')
 
-        self.plots.twinx_canvas(x,main_var,y1,selected_row,colors=colors,t=None,t_label='Time')
-        window.write_event_value(self.THREAD, '*** The thread says.... "I am finished" ***')
+        #self.plots.twinx_canvas(x,main_var,y1,selected_row,colors=colors,t=None,t_label='Time')
+        window.write_event_value(self.TWINX, (x,main_var,y1,selected_row,colors,None,'Time'))
 
     def open_in_browser(self, link):
         webbrowser.open(link, new=2)
 
-    def correlate_vars(self, main_var, begin_date, end_date, margin, regex, is_EPICS, window):
+    def correlate_vars(self, main_var, begin_date, end_date, margin, regex, method, is_EPICS, window):
         if(self.is_EPICS):
             if(regex == ''):
                 regex = ".*"
-            delays, corrs, names = self.dataset.correlate_EPICS(main_var, regex, begin_date, end_date, margin)
+            delays, corrs, names = self.dataset.correlate_EPICS(main_var, regex, begin_date, end_date, margin, method)
         else:
-            delays, corrs, names = self.dataset.correlate(main_var, begin_date, end_date, margin)
+            delays, corrs, names = self.dataset.correlate(main_var, begin_date, end_date, margin, method)
 
         self.delays = dict(zip(names, delays))
         delays = self.dataset.to_date(delays,names)
@@ -213,9 +212,9 @@ class App():
             self.window.Element(self.DATE_END).Update(value=d)
             self.window.Element(self.TIME_END).Update(value=t)
 
-        self.plots.update_canvas(x,x_label,t=None,t_label='Time')
+        #self.plots.update_canvas(x,x_label,t=None,t_label='Time')
         self.main_variable = x_label
-        window.write_event_value(self.THREAD, '*** The thread says.... "I am finished" ***')
+        window.write_event_value(self.UPDATE, (x,x_label,None,'Time'))
 
     def select_time(self, main_var, begin_date, end_date, is_EPICS,window):
         if(begin_date != ''):
@@ -232,7 +231,7 @@ class App():
         self.end_date = self.convert_time(is_EPICS, self.end_date)
         if(main_var != None): 
             x = self.get_var(is_EPICS, main_var)
-            self.plots.update_canvas(x,main_var,t=None,t_label='Time')
+            #self.plots.update_canvas(x,main_var,t=None,t_label='Time')
             d = x.index[0].date().isoformat()
             t = x.index[0].strftime('%H:%M')
 
@@ -246,7 +245,9 @@ class App():
 
             self.window.Element(self.DATE_END).Update(value=d)
             self.window.Element(self.TIME_END).Update(value=t)
-        window.write_event_value(self.THREAD, '*** The thread says.... "I am finished" ***')
+            window.write_event_value(self.UPDATE, (x,main_var,None,'Time'))
+        else:
+            window.write_event_value(self.THREAD, '*** The thread says.... "I am finished" ***')
 
 
     def clean_regex(self, regex):
@@ -298,7 +299,10 @@ class App():
 
         elif event == self.CORR:
             try:
-                if(self.thread == None):
+                if(not (values[self.DELAY] or values[self.ORIGINAL])):
+                    sg.Popup('Selecione ao menos um entre: Original Signal e Delay Corrected Signal')
+
+                elif(self.thread == None):
                     (self.main_variable, self.begin_date, self.end_date, float(values[self.MARGIN]), values[self.DELAY], values[self.ORIGINAL], self.is_EPICS)
                     self.thread = threading.Thread(target=self.choose_corr, args=(self.main_variable, 
                                                                                 self.begin_date, 
@@ -348,6 +352,7 @@ class App():
                                                                        self.end_date, 
                                                                        float(values[self.MARGIN]), 
                                                                        self.clean_regex(values[self.REGEX]), 
+                                                                       values[self.METHOD],
                                                                        self.is_EPICS,self.window), daemon=True)
                     self.thread.start()
                     self.timeout = 100
@@ -359,6 +364,20 @@ class App():
         
         elif event == self.THREAD:
             try:
+                self.stop_loading()
+            except:
+                pass
+
+        elif event == self.TWINX:
+            try:
+                self.plots.twinx_canvas(*values[self.TWINX])
+                self.stop_loading()
+            except:
+                pass
+
+        elif event == self.UPDATE:
+            try:
+                self.plots.update_canvas(*values[self.UPDATE])
                 self.stop_loading()
             except:
                 pass
