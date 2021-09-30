@@ -16,7 +16,7 @@ import webbrowser
 import threading
 
 matplotlib.use('TkAgg')
-VERSION = '(V0.1.0)'
+VERSION = '(V0.1.1)'
 
 class Toolbar(NavigationToolbar2Tk):
     def __init__(self, *args, **kwargs):
