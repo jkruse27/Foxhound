@@ -1,6 +1,7 @@
 import PySimpleGUI as sg
 import os.path
-from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
+import time
+from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg, NavigationToolbar2Tk
 import pandas as pd
 import matplotlib.pyplot as plt
 import numpy as np
@@ -9,12 +10,17 @@ import scipy.signal as sig
 import matplotlib
 from Dataset import *
 from datetime import *
+from Plots import *
 import pytz
 import webbrowser
+import threading
 
 matplotlib.use('TkAgg')
-VERSION = '(V0.1.0)'
+VERSION = '(V0.1.1)'
 
+class Toolbar(NavigationToolbar2Tk):
+    def __init__(self, *args, **kwargs):
+        super(Toolbar, self).__init__(*args, **kwargs)
 
 class App():
 
@@ -24,7 +30,7 @@ class App():
             IN='-IN-', DATE_BEG='-DATE_BEG-', DATE_END='-DATE_END-', TIME_BEG='-TIME_BEG-',
             TIME_END='-TIME_END-',SELECT='Select', MARGIN='-MARGIN-', EPICS='Use EPICS',
             SEARCH='Search', CHOOSE='Choose', NUMBER='-N_VARS-', REGEX='-REGEX-', 
-            REDIRECT='-REDIRECT-', DELAY='-DELAY-', ORIGINAL='-ORIG-'):
+            REDIRECT='-REDIRECT-', DELAY='-DELAY-', ORIGINAL='-ORIG-', CLEAR='Clear', METHOD='-METHOD-'):
         self.window = sg.Window(name+VERSION, layout, resizable=True, icon=img).Finalize()
         self.window.Maximize()
         self.CANVAS_NAME = CANVAS_NAME
@@ -33,6 +39,7 @@ class App():
         self.OTHER_VARS = OTHER_VAR
         self.CORRELATE=CORRELATE
         self.PLOT = PLOT
+        self.METHOD = METHOD
         self.CORR = CORRELATION_SEL
         self.DATE_BEG = DATE_BEG
         self.DATE_END = DATE_END
@@ -48,99 +55,27 @@ class App():
         self.N_VARS = NUMBER
         self.REGEX = REGEX
         self.DELAY = DELAY
+        self.CLEAR = CLEAR
         self.ORIGINAL = ORIGINAL
         self.REDIRECT = REDIRECT
+        self.THREAD = '-THREAD-'
+        self.TWINX = '-TWINX-'
+        self.UPDATE = '-UPDATE-'
+        self.INITIALIZE = '-INITIALIZE-'
         self.REGEX_LINK = 'https://docs.oracle.com/javase/7/docs/api/java/util/regex/Pattern.html'
         self.is_EPICS = False
+        self.RESIZE = '-RESIZE-'
+        self.current_size = self.window.size
+        self.running = False
+        self.timeout = None
 
-
+        self.thread = None
         self.begin_date = None
         self.end_date = None
         self.ax3 = None
         self.main_variable = None
 
-        self.init_canvas(FIGSIZE_X, FIGSIZE_Y)
-
-
-    def init_canvas(self, FIGSIZE_X=8,FIGSIZE_Y=8):
-        self.FIGSIZE_X = FIGSIZE_X
-        self.FIGSIZE_Y = FIGSIZE_Y
-        self.fig, self.axs1 = plt.subplots(figsize=(FIGSIZE_X,FIGSIZE_Y))
-        self.figure_canvas_agg = FigureCanvasTkAgg(self.fig, self.window[self.CANVAS_NAME].TKCanvas)
-        self.figure_canvas_agg.draw()
-        self.figure_canvas_agg.get_tk_widget().pack(side='top', fill='both', expand=1)
-
-    def twinx_canvas(self,x,x_label,y,y_label,colors='r',t=None,t_label='Time'):
-        self.axs1.cla()
-
-        if(self.ax3 != None):
-            self.ax3.remove()
-
-        self.ax3 = self.axs1.twinx()
-
-        self.row = x_label
-
-        if(t==None):
-            self.axs1.plot(x,label=x_label)
-            self.axs1.set_ylabel(x_label)
-            self.axs1.set_xlabel(t_label)
-        else:
-            self.axs1.plot(t,x,label=x_label)
-            self.axs1.set_ylabel(x_label)
-            self.axs1.set_xlabel(t_label)
-        
-
-        if(t==None):
-            for signal, color in zip(y,colors):
-                self.ax3.plot(signal,color=color,label=y_label)
-            self.ax3.set_ylabel(y_label, rotation=-90,labelpad=7)
-        else:
-            for signal, color in zip(y,colors):
-                self.ax3.plot(t,signal,color=color,label=y_label)
-            self.ax3.set_ylabel(y_label, rotation=-90,labelpad=7)
-
-        k = int(len(self.axs1.xaxis.get_ticklabels())/5)
-
-        self.axs1.yaxis.label.set_color('blue')
-        self.ax3.yaxis.label.set_color(colors[0])
-
-        for n, label in enumerate(self.axs1.xaxis.get_ticklabels()):
-            if n % k != 0:
-                label.set_visible(False)
-
-        self.window[self.CANVAS_NAME].TKCanvas.delete('all')
-        self.figure_canvas_agg.draw()
-
-
-    def update_canvas(self,x,x_label,t=None,t_label='Time'):
-        self.row = x_label
-
-        self.axs1.clear()
-
-        if(self.ax3!=None):
-            self.ax3.remove()
-            self.ax3 = None
-
-        if(t==None):
-            self.axs1.plot(x,label=x_label)
-            self.axs1.set_ylabel(x_label)
-            self.axs1.set_xlabel(t_label)
-        else:
-            self.axs1.plot(t,x,label=x_label)
-            self.axs1.set_ylabel(x_label)
-            self.axs1.set_xlabel(t_label)
-
-        k = int(len(self.axs1.xaxis.get_ticklabels())/5)
-
-        for n, label in enumerate(self.axs1.xaxis.get_ticklabels()):
-            if n % k != 0:
-                label.set_visible(False)
-
-        self.axs1.yaxis.label.set_color('blue')
-
-        self.window[self.CANVAS_NAME].TKCanvas.delete('all')
-        self.figure_canvas_agg.draw()
-
+        self.plots = Plots(self.window[self.CANVAS_NAME].TKCanvas,FIGSIZE_X, FIGSIZE_Y)
 
     def create_tree(self, values, index=None):
         new_tree = sg.TreeData()
@@ -167,11 +102,11 @@ class App():
             self.dataset = Dataset(name)    
             self.window.Element(self.PVS).Update(values=self.create_tree(self.dataset.get_columns()))
 
-    def initialize_EPICS(self):
+    def initialize_EPICS(self, window):
         self.is_EPICS = True
-        self.window.Element(self.DATASET).Update(value='EPICS')
-        self.dataset = Dataset()
-        self.create_from_EPICS()
+        window.Element(self.DATASET).Update(value='EPICS')
+        self.dataset.update_pv_names(regex=None,limit=100)
+        window.write_event_value(self.INITIALIZE, '*** The thread says.... "I am finished" ***')
 
     def update_main_list(self, text, is_EPICS, clicked=False):
         if(is_EPICS and clicked):
@@ -184,11 +119,7 @@ class App():
                         )
                     )
 
-    def choose_corr(self, main_var, begin_date, end_date, margin, is_delayed, is_original, is_EPICS):
-        if(not (is_delayed or is_original)):
-            sg.Popup('Selecione ao menos um entre: Original Signal e Delay Corrected Signal')
-            return
-
+    def choose_corr(self, main_var, begin_date, end_date, margin, is_delayed, is_original, is_EPICS, window):
         selected_row = self.window.Element(self.CORR).SelectedRows[0]
         selected_row = self.window.Element(self.CORR).TreeData.tree_dict[selected_row].values[0]
         dt = end_date - begin_date
@@ -211,18 +142,19 @@ class App():
             y1.append(y[begin_date:end_date])
             colors.append('k')
 
-        self.twinx_canvas(x,main_var,y1,selected_row,colors=colors,t=None,t_label='Time')
+        #self.plots.twinx_canvas(x,main_var,y1,selected_row,colors=colors,t=None,t_label='Time')
+        window.write_event_value(self.TWINX, (x,main_var,y1,selected_row,colors,None,'Time'))
 
     def open_in_browser(self, link):
         webbrowser.open(link, new=2)
 
-    def correlate_vars(self, main_var, begin_date, end_date, margin, regex, is_EPICS):
+    def correlate_vars(self, main_var, begin_date, end_date, margin, regex, method, is_EPICS, window):
         if(self.is_EPICS):
             if(regex == ''):
                 regex = ".*"
-            delays, corrs, names = self.dataset.correlate_EPICS(main_var, regex, begin_date, end_date, margin)
+            delays, corrs, names = self.dataset.correlate_EPICS(main_var, regex, begin_date, end_date, margin, method)
         else:
-            delays, corrs, names = self.dataset.correlate(main_var, begin_date, end_date, margin)
+            delays, corrs, names = self.dataset.correlate(main_var, begin_date, end_date, margin, method)
 
         self.delays = dict(zip(names, delays))
         delays = self.dataset.to_date(delays,names)
@@ -230,6 +162,7 @@ class App():
         corrs, delays, names = zip(*sorted(zip(corrs, delays, names),reverse=True,key=lambda x: abs(x[0])))
 
         self.window.Element(self.CORR).Update(values=self.create_tree(list(map(list, zip(names, corrs, delays)))))
+        window.write_event_value(self.THREAD, '*** The thread says.... "I am finished" ***')
 
     def convert_time(self, is_EPICS, time):
         if(is_EPICS):
@@ -249,7 +182,7 @@ class App():
                 x = self.dataset.get_series(main_var)
         return x
 
-    def choose_pv(self, is_EPICS, beg_date, end_date):
+    def choose_pv(self, is_EPICS, beg_date, end_date, window):
         selected_row = self.window.Element(self.PVS).SelectedRows[0]
         x_label = self.window.Element(self.PVS).TreeData.tree_dict[selected_row].values
 
@@ -279,10 +212,11 @@ class App():
             self.window.Element(self.DATE_END).Update(value=d)
             self.window.Element(self.TIME_END).Update(value=t)
 
-        self.update_canvas(x,x_label,t=None,t_label='Time')
+        #self.plots.update_canvas(x,x_label,t=None,t_label='Time')
         self.main_variable = x_label
+        window.write_event_value(self.UPDATE, (x,x_label,None,'Time'))
 
-    def select_time(self, main_var, begin_date, end_date, is_EPICS):
+    def select_time(self, main_var, begin_date, end_date, is_EPICS,window):
         if(begin_date != ''):
             self.begin_date = datetime.strptime(begin_date,"%Y-%m-%d %H:%M")
         else:
@@ -297,7 +231,24 @@ class App():
         self.end_date = self.convert_time(is_EPICS, self.end_date)
         if(main_var != None): 
             x = self.get_var(is_EPICS, main_var)
-            self.update_canvas(x,main_var,t=None,t_label='Time')
+            #self.plots.update_canvas(x,main_var,t=None,t_label='Time')
+            d = x.index[0].date().isoformat()
+            t = x.index[0].strftime('%H:%M')
+
+            self.begin_date = self.convert_time(is_EPICS,x.index[0])
+            self.window.Element(self.DATE_BEG).Update(value=d)
+            self.window.Element(self.TIME_BEG).Update(value=t)
+
+            d = x.index[-1].date().isoformat()
+            t = x.index[-1].strftime('%H:%M')
+            self.end_date = self.convert_time(is_EPICS,x.index[-1])
+
+            self.window.Element(self.DATE_END).Update(value=d)
+            self.window.Element(self.TIME_END).Update(value=t)
+            window.write_event_value(self.UPDATE, (x,main_var,None,'Time'))
+        else:
+            window.write_event_value(self.THREAD, '*** The thread says.... "I am finished" ***')
+
 
     def clean_regex(self, regex):
         if(regex==''):
@@ -305,7 +256,7 @@ class App():
         
         return '?'.join([*['(.*'+'.*'.join(el.split('&'))+'.*)' for el in regex.split()], ''])
 
-    def choose_regex(self, regex, is_EPICS):
+    def choose_regex(self, regex, is_EPICS, window):
         if(is_EPICS):
             n = self.dataset.number_of_vars(regex)
             message = 'Number of Signals: '+str(n)
@@ -313,11 +264,18 @@ class App():
             self.window.Element(self.N_VARS).Update(message)
         else:
             self.window.Element(self.N_VARS).Update('O dataset próprio realiza a comparação com todas as variáveis')
+        window.write_event_value(self.THREAD, '*** The thread says.... "I am finished" ***')
 
+    def stop_loading(self):
+        self.thread.join()
+        sg.popup_animated(None)                     # stop animination in case one is running
+        self.running = False
+        self.thread = None  # reset variables for next run
+        self.timeout = None
 
     def iteration(self):
 
-        event, values = self.window.read()
+        event, values = self.window.read(timeout=self.timeout)
         
         if event == sg.WIN_CLOSED:
             return 0
@@ -330,8 +288,16 @@ class App():
 
         elif event == self.EPICS:
             try:
-                self.initialize_EPICS()
+                if(self.thread == None):
+                    self.dataset = Dataset()
+                    self.thread = threading.Thread(target=self.initialize_EPICS, args=(self.window,), daemon=True)
+                    self.thread.start()
+                    self.timeout = 100
+                    sg.popup_animated(sg.DEFAULT_BASE64_LOADING_GIF, background_color='white', transparent_color='white', time_between_frames=self.timeout)
+                    self.running = True
+                #self.initialize_EPICS()
             except:
+                self.stop_loading()
                 sg.Popup('Erro ao inicializar EPICS')
 
         elif event == self.IN or event == self.SEARCH:
@@ -342,8 +308,25 @@ class App():
 
         elif event == self.CORR:
             try:
-                self.choose_corr(self.main_variable, self.begin_date, self.end_date, float(values[self.MARGIN]), values[self.DELAY], values[self.ORIGINAL], self.is_EPICS)
+                if(not (values[self.DELAY] or values[self.ORIGINAL])):
+                    sg.Popup('Selecione ao menos um entre: Original Signal e Delay Corrected Signal')
+
+                elif(self.thread == None):
+                    #(self.main_variable, self.begin_date, self.end_date, float(values[self.MARGIN]), values[self.DELAY], values[self.ORIGINAL], self.is_EPICS)
+                    self.thread = threading.Thread(target=self.choose_corr, args=(self.main_variable, 
+                                                                                self.begin_date, 
+                                                                                self.end_date, 
+                                                                                float(values[self.MARGIN]), 
+                                                                                values[self.DELAY], 
+                                                                                values[self.ORIGINAL], 
+                                                                                self.is_EPICS, 
+                                                                                self.window), daemon=True)
+                    self.thread.start()
+                    self.timeout = 100
+                    sg.popup_animated(sg.DEFAULT_BASE64_LOADING_GIF, background_color='white', transparent_color='white', time_between_frames=self.timeout)
+                    self.running = True
             except:
+                self.stop_loading()
                 sg.Popup('Erro ao plotar variavel')
 
         elif event == self.REDIRECT:
@@ -354,32 +337,109 @@ class App():
 
         elif event == self.PVS:
             try:
-                beg = values[self.DATE_BEG].strip()+" "+values[self.TIME_BEG].strip()
-                end = values[self.DATE_END].strip()+" "+values[self.TIME_END].strip()
-                self.choose_pv(self.is_EPICS, beg, end)
+                if(self.thread == None):
+                    beg = values[self.DATE_BEG].strip()+" "+values[self.TIME_BEG].strip()
+                    end = values[self.DATE_END].strip()+" "+values[self.TIME_END].strip()
+                    #(self.is_EPICS, beg, end)
+                    self.thread = threading.Thread(target=self.choose_pv, args=(self.is_EPICS, 
+                                                                       beg,
+                                                                       end, 
+                                                                       self.window), daemon=True)
+                    self.thread.start()
+                    self.timeout = 100
+                    sg.popup_animated(sg.DEFAULT_BASE64_LOADING_GIF, background_color='white', transparent_color='white', time_between_frames=self.timeout)
+                    self.running = True
             except:
+                self.stop_loading()
                 sg.Popup('Erro na escolha do sinal principal')
                
         elif event==self.CORRELATE:
             try:
-                self.correlate_vars(self.main_variable, self.begin_date, self.end_date, float(values[self.MARGIN]), self.clean_regex(values[self.REGEX]), self.is_EPICS)
+                if(self.thread == None):
+                    self.thread = threading.Thread(target=self.correlate_vars, args=(self.main_variable, 
+                                                                       self.begin_date,
+                                                                       self.end_date, 
+                                                                       float(values[self.MARGIN]), 
+                                                                       self.clean_regex(values[self.REGEX]), 
+                                                                       values[self.METHOD],
+                                                                       self.is_EPICS,self.window), daemon=True)
+                    self.thread.start()
+                    self.timeout = 100
+                    sg.popup_animated(sg.DEFAULT_BASE64_LOADING_GIF, background_color='white', transparent_color='white', time_between_frames=self.timeout)
+                    self.running = True
             except:
+                self.stop_loading()
                 sg.Popup('Erro na correlação')
+        
+        elif event == self.THREAD:
+            try:
+                self.stop_loading()
+            except:
+                pass
+
+        elif event == self.TWINX:
+            try:
+                self.plots.twinx_canvas(*values[self.TWINX])
+                self.stop_loading()
+            except:
+                pass
+
+        elif event == self.INITIALIZE:
+            try:
+                self.window.Element(self.PVS).Update(values=self.create_tree(self.dataset.get_columns()))
+                self.stop_loading()
+            except:
+                pass
+
+        elif event == self.UPDATE:
+            try:
+                self.plots.update_canvas(*values[self.UPDATE])
+                self.stop_loading()
+            except:
+                pass
 
         elif event==self.SELECT:
             try:
-                beg = values[self.DATE_BEG].strip()+" "+values[self.TIME_BEG].strip()
-                end = values[self.DATE_END].strip()+" "+values[self.TIME_END].strip()
-                self.select_time(self.main_variable, beg, end, self.is_EPICS)
+                if(self.plots.selected()):
+                    beg, end = self.plots.get_times()
+                else:
+                    beg = values[self.DATE_BEG].strip()+" "+values[self.TIME_BEG].strip()
+                    end = values[self.DATE_END].strip()+" "+values[self.TIME_END].strip()
+
+                if(self.thread == None):
+                    self.thread = threading.Thread(target=self.select_time, args=(self.main_variable, 
+                                                                       beg,
+                                                                       end, 
+                                                                       self.is_EPICS,self.window), daemon=True)
+                    self.thread.start()
+                    self.timeout = 100
+                    sg.popup_animated(sg.DEFAULT_BASE64_LOADING_GIF, background_color='white', transparent_color='white', time_between_frames=self.timeout)
+                    self.running = True
             except:
+                self.stop_loading()
                 sg.Popup('Erro na seleção do tempo')
 
         elif event == self.CHOOSE:
             try:
-                self.choose_regex(self.clean_regex(values[self.REGEX]), self.is_EPICS)
+                if(self.thread == None):
+                    self.thread = threading.Thread(target=self.choose_regex, args=(self.clean_regex(values[self.REGEX]), 
+                                                                       self.is_EPICS,self.window), daemon=True)
+                    self.thread.start()
+                    self.timeout = 100
+                    sg.popup_animated(sg.DEFAULT_BASE64_LOADING_GIF, background_color='white', transparent_color='white', time_between_frames=self.timeout)
+                    self.running = True
             except:
+                self.stop_loading()
                 sg.Popup('Erro na contagem de variáveis')
 
+        elif event == self.CLEAR:
+            try:
+                self.plots.clear()
+            except:
+                sg.Popup('Erro ao Excluir Marcadores')
+
+        if(self.running):
+            sg.popup_animated(sg.DEFAULT_BASE64_LOADING_GIF, background_color='white', transparent_color='white', time_between_frames=self.timeout)
         return 1
 
     def quit(self):

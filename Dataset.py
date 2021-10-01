@@ -42,7 +42,7 @@ class Dataset():
         x.index = pd.to_datetime(x.index, format="%d.%m.%y %H:%M")
         return x
 
-    def correlate_EPICS(self, x_label, regex, begin=None, end=None, margin=0.2):
+    def correlate_EPICS(self, x_label, regex, begin=None, end=None, margin=0.2, method='Pearson'):
         x = self.get_EPICS_pv([x_label], begin, end)
         x = x[x.columns[0]]
 
@@ -53,13 +53,13 @@ class Dataset():
 
         self.dataset = y
 
-        corrs, delays = Correlator.correlate(x,y,margin)
+        corrs, delays = Correlator.correlate(x,y,margin, method.lower())
         
-        delays = [delay-int(x.size*margin) for delay in delays]
+        #delays = [delay-int(x.size*margin) for delay in delays]
 
         return delays, corrs, y.columns
 
-    def correlate(self, x_label, begin=None, end=None, margin=0.2):
+    def correlate(self, x_label, begin=None, end=None, margin=0.2, method='Pearson'):
         if(begin==None):
             begin = self.dataset.index[0]
         if(end==None):
@@ -70,8 +70,8 @@ class Dataset():
         x = self.dataset[x_label][begin:end]
         y = self.dataset.drop(x_label,axis=1)[begin-margin*dt:end+margin*dt]
 
-        corrs, delays = Correlator.correlate(x,y,margin)
-        delays = [delay-int(x.size*margin) for delay in delays]
+        corrs, delays = Correlator.correlate(x,y,margin, method.lower())
+        #delays = [delay-int(x.size*margin) for delay in delays]
 
         return delays, corrs, y.columns
 
