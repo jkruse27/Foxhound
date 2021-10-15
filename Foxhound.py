@@ -1,16 +1,13 @@
+import os
+import sys
+sys.path.insert(0, os.path.abspath('./samples'))
+
 import PySimpleGUI as sg
-from Application_Logic import *
-from Layout import *
+from application_logic import App
 
 
-layout = Layout()
+app = App()
 
-FIGSIZE_X, FIGSIZE_Y = layout.get_fig_size()
-
-# Create the window
-app = App(layout.get_layout(),FIGSIZE_X,FIGSIZE_Y)
-
-# Create an event loop
 while app.iteration():
     pass
 

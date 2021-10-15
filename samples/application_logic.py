@@ -1,4 +1,5 @@
 import PySimpleGUI as sg
+import layout as layout
 import os.path
 import time
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg, NavigationToolbar2Tk
@@ -8,15 +9,19 @@ import numpy as np
 import scipy as sp
 import scipy.signal as sig
 import matplotlib
-from Dataset import *
+from dataset import Dataset
 from datetime import *
-from Plots import *
+from plots import *
 import pytz
 import webbrowser
 import threading
+import requests
+import constants as cte
+import causations as cause
+from requests.packages.urllib3.exceptions import InsecureRequestWarning
 
 matplotlib.use('TkAgg')
-VERSION = '(V0.1.1)'
+VERSION = '(V0.1.2)'
 
 class Toolbar(NavigationToolbar2Tk):
     def __init__(self, *args, **kwargs):
@@ -24,58 +29,27 @@ class Toolbar(NavigationToolbar2Tk):
 
 class App():
 
-    def __init__(self, layout, FIGSIZE_X, FIGSIZE_Y, name="Foxhound", img="Imgs/foxhound.ico", CANVAS_NAME='-CANVAS-',
-            DATASET='-DATASET-', MAIN_VAR='-MAIN VAR-', OTHER_VAR='-OTHER VARS-',
-            CORRELATE='Correlate', PLOT='Plot', CORRELATION_SEL='-CORR-', PVS='-PVS-',
-            IN='-IN-', DATE_BEG='-DATE_BEG-', DATE_END='-DATE_END-', TIME_BEG='-TIME_BEG-',
-            TIME_END='-TIME_END-',SELECT='Select', MARGIN='-MARGIN-', EPICS='Use EPICS',
-            SEARCH='Search', CHOOSE='Choose', NUMBER='-N_VARS-', REGEX='-REGEX-', 
-            REDIRECT='-REDIRECT-', DELAY='-DELAY-', ORIGINAL='-ORIG-', CLEAR='Clear', METHOD='-METHOD-'):
-        self.window = sg.Window(name+VERSION, layout, resizable=True, icon=img).Finalize()
+    def __init__(self, name="Foxhound", img="Imgs/foxhound.ico"):
+        self.window = sg.Window(name+VERSION, layout.get_layout(), resizable=True, icon=img).Finalize()
+        self.params = None
+        self.layout = layout
         self.window.Maximize()
-        self.CANVAS_NAME = CANVAS_NAME
-        self.DATASET = DATASET
-        self.MAIN_VAR = MAIN_VAR
-        self.OTHER_VARS = OTHER_VAR
-        self.CORRELATE=CORRELATE
-        self.PLOT = PLOT
-        self.METHOD = METHOD
-        self.CORR = CORRELATION_SEL
-        self.DATE_BEG = DATE_BEG
-        self.DATE_END = DATE_END
-        self.TIME_BEG = TIME_BEG
-        self.TIME_END = TIME_END
-        self.PVS = PVS
-        self.IN = IN
-        self.SELECT = SELECT
-        self.MARGIN = MARGIN
-        self.EPICS = EPICS
-        self.SEARCH = SEARCH
-        self.CHOOSE = CHOOSE
-        self.N_VARS = NUMBER
-        self.REGEX = REGEX
-        self.DELAY = DELAY
-        self.CLEAR = CLEAR
-        self.ORIGINAL = ORIGINAL
-        self.REDIRECT = REDIRECT
-        self.THREAD = '-THREAD-'
-        self.TWINX = '-TWINX-'
-        self.UPDATE = '-UPDATE-'
-        self.INITIALIZE = '-INITIALIZE-'
-        self.REGEX_LINK = 'https://docs.oracle.com/javase/7/docs/api/java/util/regex/Pattern.html'
+
         self.is_EPICS = False
-        self.RESIZE = '-RESIZE-'
         self.current_size = self.window.size
         self.running = False
         self.timeout = None
 
+        self.choosing_params = False
         self.thread = None
         self.begin_date = None
         self.end_date = None
         self.ax3 = None
         self.main_variable = None
 
-        self.plots = Plots(self.window[self.CANVAS_NAME].TKCanvas,FIGSIZE_X, FIGSIZE_Y)
+        self.causes = cause.Causations(('Adam',1,4,0.8,4,500,0.01,1000))
+        self.plots = Plots(self.window[cte.CANVAS].TKCanvas,*self.layout.get_fig_size())
+        requests.packages.urllib3.disable_warnings(InsecureRequestWarning)
 
     def create_tree(self, values, index=None):
         new_tree = sg.TreeData()
@@ -90,38 +64,38 @@ class App():
 
     def create_from_EPICS(self, regex=None, limit=100):
         self.dataset.update_pv_names(regex=regex,limit=limit)
-        self.window.Element(self.PVS).Update(values=self.create_tree(self.dataset.get_columns()))
+        self.window.Element(cte.PVS).Update(values=self.create_tree(self.dataset.get_columns()))
 
     def open_dataset(self, name, is_EPICS):
         if(is_EPICS and name != ''):
             self.is_EPICS = False
             self.dataset = Dataset(name)    
-            self.window.Element(self.PVS).Update(values=self.create_tree(self.dataset.get_columns()))
+            self.window.Element(cte.PVS).Update(values=self.create_tree(self.dataset.get_columns()))
 
         else:
             self.dataset = Dataset(name)    
-            self.window.Element(self.PVS).Update(values=self.create_tree(self.dataset.get_columns()))
+            self.window.Element(cte.PVS).Update(values=self.create_tree(self.dataset.get_columns()))
 
     def initialize_EPICS(self, window):
         self.is_EPICS = True
-        window.Element(self.DATASET).Update(value='EPICS')
+        window.Element(cte.DATASET).Update(value='EPICS')
         self.dataset.update_pv_names(regex=None,limit=100)
-        window.write_event_value(self.INITIALIZE, '*** The thread says.... "I am finished" ***')
+        window.write_event_value(cte.INITIALIZE, '*** The thread says.... "I am finished" ***')
 
     def update_main_list(self, text, is_EPICS, clicked=False):
         if(is_EPICS and clicked):
             self.create_from_EPICS(regex=".*"+text+".*")
 
         elif(not is_EPICS):
-            self.window.Element(self.PVS).Update(
+            self.window.Element(cte.PVS).Update(
                     values=self.create_tree(self.dataset.get_columns(
                         regex=".*"+text+".*")
                         )
                     )
 
     def choose_corr(self, main_var, begin_date, end_date, margin, is_delayed, is_original, is_EPICS, window):
-        selected_row = self.window.Element(self.CORR).SelectedRows[0]
-        selected_row = self.window.Element(self.CORR).TreeData.tree_dict[selected_row].values[0]
+        selected_row = self.window.Element(cte.CORR).SelectedRows[0]
+        selected_row = self.window.Element(cte.CORR).TreeData.tree_dict[selected_row].values[0]
         dt = end_date - begin_date
 
         if(is_EPICS):
@@ -143,10 +117,20 @@ class App():
             colors.append('k')
 
         #self.plots.twinx_canvas(x,main_var,y1,selected_row,colors=colors,t=None,t_label='Time')
-        window.write_event_value(self.TWINX, (x,main_var,y1,selected_row,colors,None,'Time'))
+        window.write_event_value(cte.TWINX, (x,main_var,y1,selected_row,colors,None,'Time'))
 
     def open_in_browser(self, link):
         webbrowser.open(link, new=2)
+
+    def causal_discovery(self, main_var, begin_date, end_date, margin, regex, options, is_EPICS, window):
+        if(self.is_EPICS):
+            if(regex == ''):
+                regex = ".*"
+            all_delays, columns = self.dataset.causation_EPICS(main_var, regex, begin_date, end_date, margin,options)
+        else:
+            all_delays, columns = self.dataset.causation(main_var, begin_date, end_date, margin, options)
+
+        window.write_event_value(cte.CAUSATION, (all_delays,columns))
 
     def correlate_vars(self, main_var, begin_date, end_date, margin, regex, method, is_EPICS, window):
         if(self.is_EPICS):
@@ -161,8 +145,8 @@ class App():
 
         corrs, delays, names = zip(*sorted(zip(corrs, delays, names),reverse=True,key=lambda x: abs(x[0])))
 
-        self.window.Element(self.CORR).Update(values=self.create_tree(list(map(list, zip(names, corrs, delays)))))
-        window.write_event_value(self.THREAD, '*** The thread says.... "I am finished" ***')
+        self.window.Element(cte.CORR).Update(values=self.create_tree(list(map(list, zip(names, corrs, delays)))))
+        window.write_event_value(cte.THREAD, '*** The thread says.... "I am finished" ***')
 
     def convert_time(self, is_EPICS, time):
         if(is_EPICS):
@@ -183,8 +167,8 @@ class App():
         return x
 
     def choose_pv(self, is_EPICS, beg_date, end_date, window):
-        selected_row = self.window.Element(self.PVS).SelectedRows[0]
-        x_label = self.window.Element(self.PVS).TreeData.tree_dict[selected_row].values
+        selected_row = self.window.Element(cte.PVS).SelectedRows[0]
+        x_label = self.window.Element(cte.PVS).TreeData.tree_dict[selected_row].values
 
 
         if(end_date != ' 00:00'):
@@ -202,19 +186,19 @@ class App():
             t = x.index[0].strftime('%H:%M')
 
             self.begin_date = self.convert_time(is_EPICS,x.index[0])
-            self.window.Element(self.DATE_BEG).Update(value=d)
-            self.window.Element(self.TIME_BEG).Update(value=t)
+            self.window.Element(cte.DATE_BEG).Update(value=d)
+            self.window.Element(cte.TIME_BEG).Update(value=t)
         if(end_date == ' 00:00'):
             d = x.index[-1].date().isoformat()
             t = x.index[-1].strftime('%H:%M')
             self.end_date = self.convert_time(is_EPICS,x.index[-1])
 
-            self.window.Element(self.DATE_END).Update(value=d)
-            self.window.Element(self.TIME_END).Update(value=t)
+            self.window.Element(cte.DATE_END).Update(value=d)
+            self.window.Element(cte.TIME_END).Update(value=t)
 
         #self.plots.update_canvas(x,x_label,t=None,t_label='Time')
         self.main_variable = x_label
-        window.write_event_value(self.UPDATE, (x,x_label,None,'Time'))
+        window.write_event_value(cte.UPDATE, (x,x_label,None,'Time'))
 
     def select_time(self, main_var, begin_date, end_date, is_EPICS,window):
         if(begin_date != ''):
@@ -236,18 +220,18 @@ class App():
             t = x.index[0].strftime('%H:%M')
 
             self.begin_date = self.convert_time(is_EPICS,x.index[0])
-            self.window.Element(self.DATE_BEG).Update(value=d)
-            self.window.Element(self.TIME_BEG).Update(value=t)
+            self.window.Element(cte.DATE_BEG).Update(value=d)
+            self.window.Element(cte.TIME_BEG).Update(value=t)
 
             d = x.index[-1].date().isoformat()
             t = x.index[-1].strftime('%H:%M')
             self.end_date = self.convert_time(is_EPICS,x.index[-1])
 
-            self.window.Element(self.DATE_END).Update(value=d)
-            self.window.Element(self.TIME_END).Update(value=t)
-            window.write_event_value(self.UPDATE, (x,main_var,None,'Time'))
+            self.window.Element(cte.DATE_END).Update(value=d)
+            self.window.Element(cte.TIME_END).Update(value=t)
+            window.write_event_value(cte.UPDATE, (x,main_var,None,'Time'))
         else:
-            window.write_event_value(self.THREAD, '*** The thread says.... "I am finished" ***')
+            window.write_event_value(cte.THREAD, '*** The thread says.... "I am finished" ***')
 
 
     def clean_regex(self, regex):
@@ -261,32 +245,42 @@ class App():
             n = self.dataset.number_of_vars(regex)
             message = 'Number of Signals: '+str(n)
 
-            self.window.Element(self.N_VARS).Update(message)
+            self.window.Element(cte.N_VARS).Update(message)
         else:
-            self.window.Element(self.N_VARS).Update('O dataset próprio realiza a comparação com todas as variáveis')
-        window.write_event_value(self.THREAD, '*** The thread says.... "I am finished" ***')
+            self.window.Element(cte.N_VARS).Update('O dataset próprio realiza a comparação com todas as variáveis')
+        window.write_event_value(cte.THREAD, '*** The thread says.... "I am finished" ***')
 
     def stop_loading(self):
-        self.thread.join()
-        sg.popup_animated(None)                     # stop animination in case one is running
-        self.running = False
-        self.thread = None  # reset variables for next run
-        self.timeout = None
+        try:
+            self.thread.join()
+            sg.popup_animated(None)                     # stop animination in case one is running
+            self.running = False
+            self.thread = None  # reset variables for next run
+            self.timeout = None
+        except:
+            pass
 
     def iteration(self):
 
-        event, values = self.window.read(timeout=self.timeout)
-        
-        if event == sg.WIN_CLOSED:
-            return 0
+        if(self.choosing_params):
+            event, values = self.params.read(timeout=self.timeout)
+        else:
+            event, values = self.window.read(timeout=self.timeout)
 
-        if event == self.DATASET:
+        if event == sg.WIN_CLOSED:
+            if(self.choosing_params):
+               self.params.close()
+               self.choosing_params=False
+            else:
+                return 0
+
+        if event == cte.DATASET:
             try:
-                self.open_dataset(values[self.DATASET], self.is_EPICS)
+                self.open_dataset(values[cte.DATASET], self.is_EPICS)
             except:
                 sg.Popup('Erro ao abrir dataset')
 
-        elif event == self.EPICS:
+        elif event == cte.EPICS:
             try:
                 if(self.thread == None):
                     self.dataset = Dataset()
@@ -300,15 +294,15 @@ class App():
                 self.stop_loading()
                 sg.Popup('Erro ao inicializar EPICS')
 
-        elif event == self.IN or event == self.SEARCH:
+        elif event == cte.IN or event == cte.SEARCH:
             try:
-                self.update_main_list(values[self.IN], self.is_EPICS, clicked=(event==self.SEARCH))
+                self.update_main_list(values[cte.IN], self.is_EPICS, clicked=(event==cte.SEARCH))
             except:
                 sg.Popup('Erro ao pesquisar variáveis')
 
-        elif event == self.CORR:
+        elif event == cte.CORR:
             try:
-                if(not (values[self.DELAY] or values[self.ORIGINAL])):
+                if(not (values[cte.DELAY] or values[cte.ORIGINAL])):
                     sg.Popup('Selecione ao menos um entre: Original Signal e Delay Corrected Signal')
 
                 elif(self.thread == None):
@@ -316,9 +310,9 @@ class App():
                     self.thread = threading.Thread(target=self.choose_corr, args=(self.main_variable, 
                                                                                 self.begin_date, 
                                                                                 self.end_date, 
-                                                                                float(values[self.MARGIN]), 
-                                                                                values[self.DELAY], 
-                                                                                values[self.ORIGINAL], 
+                                                                                float(values[cte.MARGIN]), 
+                                                                                values[cte.DELAY], 
+                                                                                values[cte.ORIGINAL], 
                                                                                 self.is_EPICS, 
                                                                                 self.window), daemon=True)
                     self.thread.start()
@@ -329,18 +323,18 @@ class App():
                 self.stop_loading()
                 sg.Popup('Erro ao plotar variavel')
 
-        elif event == self.REDIRECT:
+        elif event == cte.REDIRECT:
             try:
-                self.open_in_browser(self.REGEX_LINK)
+                self.open_in_browser(cte.REGEX_LINK)
             except:
                 sg.Popup('Erro ao abrir o link')
 
-        elif event == self.PVS:
+        elif event == cte.PVS:
             try:
                 if(self.thread == None):
-                    beg = values[self.DATE_BEG].strip()+" "+values[self.TIME_BEG].strip()
-                    end = values[self.DATE_END].strip()+" "+values[self.TIME_END].strip()
-                    #(self.is_EPICS, beg, end)
+                    beg = values[cte.DATE_BEG].strip()+" "+values[cte.TIME_BEG].strip()
+                    end = values[cte.DATE_END].strip()+" "+values[cte.TIME_END].strip()
+
                     self.thread = threading.Thread(target=self.choose_pv, args=(self.is_EPICS, 
                                                                        beg,
                                                                        end, 
@@ -352,59 +346,97 @@ class App():
             except:
                 self.stop_loading()
                 sg.Popup('Erro na escolha do sinal principal')
-               
-        elif event==self.CORRELATE:
+              
+        elif event==cte.CREATE:
+            self.choosing_params = False
+            opts = (values[cte.OPTIMIZER],values[cte.LEVEL],
+                    values[cte.KERNEL],values[cte.SIGNIFICANCE],
+                    values[cte.DILATION],values[cte.LOGINT],
+                    values[cte.RATE],values[cte.EPOCHS]),
+            self.params.close()
+            self.window.write_event_value(cte.START_CAUSATION, opts)
+
+        elif event==cte.CORRELATE:
             try:
                 if(self.thread == None):
-                    self.thread = threading.Thread(target=self.correlate_vars, args=(self.main_variable, 
-                                                                       self.begin_date,
-                                                                       self.end_date, 
-                                                                       float(values[self.MARGIN]), 
-                                                                       self.clean_regex(values[self.REGEX]), 
-                                                                       values[self.METHOD],
-                                                                       self.is_EPICS,self.window), daemon=True)
+                    if(values[cte.METHOD]=='Causation'):
+                        self.params = sg.Window('Parameters', self.layout.get_param_layout(), resizable=True).Finalize()
+                        self.choosing_params = True
+                    else:
+                        self.thread = threading.Thread(target=self.correlate_vars, args=(self.main_variable, 
+                                                                           self.begin_date,
+                                                                           self.end_date, 
+                                                                           float(values[cte.MARGIN]), 
+                                                                           self.clean_regex(values[cte.REGEX]), 
+                                                                           values[cte.METHOD],
+                                                                           self.is_EPICS,self.window), daemon=True)
+                        self.thread.start()
+                        self.timeout = 100
+                        sg.popup_animated(sg.DEFAULT_BASE64_LOADING_GIF, background_color='white', transparent_color='white', time_between_frames=self.timeout)
+                        self.running = True
+            except:
+                self.stop_loading()
+                sg.Popup('Erro na correlação')
+        
+        elif event == cte.START_CAUSATION:
+            try:
+                if(self.thread == None):
+                    self.thread = threading.Thread(target=self.causal_discovery, args=(self.main_variable, 
+                                                                   self.begin_date,
+                                                                   self.end_date, 
+                                                                   float(values[cte.MARGIN]), 
+                                                                   self.clean_regex(values[cte.REGEX]), 
+                                                                   values[cte.START_CAUSATION][0],
+                                                                   self.is_EPICS,self.window), daemon=True)
                     self.thread.start()
                     self.timeout = 100
                     sg.popup_animated(sg.DEFAULT_BASE64_LOADING_GIF, background_color='white', transparent_color='white', time_between_frames=self.timeout)
                     self.running = True
             except:
                 self.stop_loading()
-                sg.Popup('Erro na correlação')
-        
-        elif event == self.THREAD:
+                sg.Popup('Erro ao buscar causas')
+
+        elif event == cte.THREAD:
             try:
                 self.stop_loading()
             except:
                 pass
 
-        elif event == self.TWINX:
+        elif event == cte.CAUSATION:
             try:
-                self.plots.twinx_canvas(*values[self.TWINX])
+                self.stop_loading()
+                self.causes.plotgraph(*values[cte.CAUSATION])
+            except:
+                pass
+
+        elif event == cte.TWINX:
+            try:
+                self.plots.twinx_canvas(*values[cte.TWINX])
                 self.stop_loading()
             except:
                 pass
 
-        elif event == self.INITIALIZE:
+        elif event == cte.INITIALIZE:
             try:
-                self.window.Element(self.PVS).Update(values=self.create_tree(self.dataset.get_columns()))
+                self.window.Element(cte.PVS).Update(values=self.create_tree(self.dataset.get_columns()))
                 self.stop_loading()
             except:
                 pass
 
-        elif event == self.UPDATE:
+        elif event == cte.UPDATE:
             try:
-                self.plots.update_canvas(*values[self.UPDATE])
+                self.plots.update_canvas(*values[cte.UPDATE])
                 self.stop_loading()
             except:
                 pass
 
-        elif event==self.SELECT:
+        elif event==cte.SELECT:
             try:
                 if(self.plots.selected()):
                     beg, end = self.plots.get_times()
                 else:
-                    beg = values[self.DATE_BEG].strip()+" "+values[self.TIME_BEG].strip()
-                    end = values[self.DATE_END].strip()+" "+values[self.TIME_END].strip()
+                    beg = values[cte.DATE_BEG].strip()+" "+values[cte.TIME_BEG].strip()
+                    end = values[cte.DATE_END].strip()+" "+values[cte.TIME_END].strip()
 
                 if(self.thread == None):
                     self.thread = threading.Thread(target=self.select_time, args=(self.main_variable, 
@@ -419,10 +451,10 @@ class App():
                 self.stop_loading()
                 sg.Popup('Erro na seleção do tempo')
 
-        elif event == self.CHOOSE:
+        elif event == cte.CHOOSE:
             try:
                 if(self.thread == None):
-                    self.thread = threading.Thread(target=self.choose_regex, args=(self.clean_regex(values[self.REGEX]), 
+                    self.thread = threading.Thread(target=self.choose_regex, args=(self.clean_regex(values[cte.REGEX]), 
                                                                        self.is_EPICS,self.window), daemon=True)
                     self.thread.start()
                     self.timeout = 100
@@ -432,7 +464,7 @@ class App():
                 self.stop_loading()
                 sg.Popup('Erro na contagem de variáveis')
 
-        elif event == self.CLEAR:
+        elif event == cte.CLEAR:
             try:
                 self.plots.clear()
             except:

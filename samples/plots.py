@@ -7,13 +7,38 @@ import numpy as np
 import scipy as sp
 import scipy.signal as sig
 import matplotlib
-from Dataset import *
+from dataset import *
 from datetime import *
 import pytz
 from matplotlib.dates import num2date
 
+"""
+Module that encapsulates all operations involving plotting variables and plot interactions
+"""
+
 class Plots():
-    def __init__(self,canvas,FIGSIZE_X=8,FIGSIZE_Y=8):
+    """
+    Class responsible for plotting and displaying the figures on the Canvas.
+    Also controls interactions with the plots.
+    """
+
+    def __init__(self,canvas,FIGSIZE_X=800,FIGSIZE_Y=800):
+        """Instantiate Plots and initialize Canvas
+        
+        Parameters
+        ----------
+        canvas : `tkinter.Canvas`
+           Canvas in which to plot the figures
+        FIGSIZE_X : `int`, optional
+            Width of the figure in pixels. Default: 800
+        FIGSIZE_Y : `int`, optional
+            Height of the figure in pixels. Default: 800
+
+        Returns
+        -------
+        `Plots`
+            Return Plots instance
+        """
         self.FIGSIZE_X = FIGSIZE_X
         self.FIGSIZE_Y = FIGSIZE_Y
         self.canvas = canvas
@@ -42,9 +67,15 @@ class Plots():
         return self.beg != None and self.end != None
 
     def get_times(self):
+        """
+        Times of the markers
+        """
         return num2date(self.beg_x).strftime("%Y-%m-%d %H:%M"), num2date(self.end_x).strftime("%Y-%m-%d %H:%M")
 
     def clear(self):
+        """
+        Removes the markers from the plot
+        """
         if(self.end != None):
             self.end.remove()
             self.t_end.remove()
@@ -57,7 +88,11 @@ class Plots():
         self.draw_figure(self.canvas, self.figure)
 
     def on_click(self,event):
+        """
+        Action to be performed when the plot is clicked. Manages the markers in the plot
+        """
         if event.inaxes is not None:
+            print(event.inaxes==self.ax3)
             if(event.button == MouseButton.LEFT and (self.end == None or self.end_x >= event.xdata)):
                 if(self.beg == None):
                     self.beg = self.axs1.axvline(x=event.xdata, color='k', linestyle='--')
@@ -82,6 +117,25 @@ class Plots():
         self.end = None
 
     def twinx_canvas(self,x,x_label,y,y_label,colors='r',t=None,t_label='Time'):
+        """Plot two variables in different y axis
+        
+        Parameters
+        ----------
+        x : `pandas.Series`
+           First time series
+        x_label : `str`
+            Name of the first time series (will appear on axis)
+        y : `List[pandas.Series]`
+           Secondary time series
+        y_label : `List[str]`
+            Name of the secondary time series (will appear on axis)
+        colors : `List[str], optional
+            Names of the colors to use for each variable (same as matplotlib names). Default: 'r'
+        t : iterable, optional
+            Values for the x axis of the plot. Default: None (uses series index as x)
+        t_label : `str`
+            Name of the x axis. Default: 'Time'
+        """
         self.clear_axs1()
 
         if(self.ax3 != None):
@@ -123,6 +177,19 @@ class Plots():
         self.draw_figure(self.canvas, self.figure)
 
     def update_canvas(self,x,x_label,t=None,t_label='Time'):
+        """Plot variable 
+        
+        Parameters
+        ----------
+        x : `pandas.Series`
+           Time series
+        x_label : `str`
+            Name of the first time series (will appear on axis)
+        t : iterable, optional
+            Values for the x axis of the plot. Default: None (uses series index as x)
+        t_label : `str`
+            Name of the x axis. Default: 'Time'
+        """
         self.row = x_label
 
         self.clear_axs1()
