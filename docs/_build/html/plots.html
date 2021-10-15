@@ -1,0 +1,161 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+    <title>Plots Module &#8212; Foxhound 0.1.2 documentation</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="_static/alabaster.css" />
+    <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+    <script src="_static/jquery.js"></script>
+    <script src="_static/underscore.js"></script>
+    <script src="_static/doctools.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+   
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <section id="module-plots">
+<span id="plots-module"></span><h1>Plots Module<a class="headerlink" href="#module-plots" title="Permalink to this headline">¶</a></h1>
+<dl class="py class">
+<dt class="sig sig-object py" id="plots.Plots">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">plots.</span></span><span class="sig-name descname"><span class="pre">Plots</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">canvas</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">FIGSIZE_X</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">800</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">FIGSIZE_Y</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">800</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#plots.Plots" title="Permalink to this definition">¶</a></dt>
+<dd><p>Class responsible for plotting and displaying the figures on the Canvas.
+Also controls interactions with the plots.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="plots.Plots.clear">
+<span class="sig-name descname"><span class="pre">clear</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#plots.Plots.clear" title="Permalink to this definition">¶</a></dt>
+<dd><p>Removes the markers from the plot</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="plots.Plots.get_times">
+<span class="sig-name descname"><span class="pre">get_times</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#plots.Plots.get_times" title="Permalink to this definition">¶</a></dt>
+<dd><p>Times of the markers</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="plots.Plots.on_click">
+<span class="sig-name descname"><span class="pre">on_click</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">event</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#plots.Plots.on_click" title="Permalink to this definition">¶</a></dt>
+<dd><p>Action to be performed when the plot is clicked. Manages the markers in the plot</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="plots.Plots.twinx_canvas">
+<span class="sig-name descname"><span class="pre">twinx_canvas</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">x_label</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y_label</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">colors</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'r'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">t</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">t_label</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'Time'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#plots.Plots.twinx_canvas" title="Permalink to this definition">¶</a></dt>
+<dd><p>Plot two variables in different y axis</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>x</strong> (<cite>pandas.Series</cite>) – First time series</p></li>
+<li><p><strong>x_label</strong> (<cite>str</cite>) – Name of the first time series (will appear on axis)</p></li>
+<li><p><strong>y</strong> (<cite>List[pandas.Series]</cite>) – Secondary time series</p></li>
+<li><p><strong>y_label</strong> (<cite>List[str]</cite>) – Name of the secondary time series (will appear on axis)</p></li>
+<li><p><strong>colors</strong> (<a href="#id1"><span class="problematic" id="id2">`</span></a>List[str], optional) – Names of the colors to use for each variable (same as matplotlib names). Default: ‘r’</p></li>
+<li><p><strong>t</strong> (<em>iterable</em><em>, </em><em>optional</em>) – Values for the x axis of the plot. Default: None (uses series index as x)</p></li>
+<li><p><strong>t_label</strong> (<cite>str</cite>) – Name of the x axis. Default: ‘Time’</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="plots.Plots.update_canvas">
+<span class="sig-name descname"><span class="pre">update_canvas</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">x_label</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">t</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">t_label</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'Time'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#plots.Plots.update_canvas" title="Permalink to this definition">¶</a></dt>
+<dd><p>Plot variable</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>x</strong> (<cite>pandas.Series</cite>) – Time series</p></li>
+<li><p><strong>x_label</strong> (<cite>str</cite>) – Name of the first time series (will appear on axis)</p></li>
+<li><p><strong>t</strong> (<em>iterable</em><em>, </em><em>optional</em>) – Values for the x axis of the plot. Default: None (uses series index as x)</p></li>
+<li><p><strong>t_label</strong> (<cite>str</cite>) – Name of the x axis. Default: ‘Time’</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="index.html">Foxhound</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="index.html">Documentation overview</a><ul>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2021, João Gabriel Segato Kruse.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 4.2.0</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+      |
+      <a href="_sources/plots.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

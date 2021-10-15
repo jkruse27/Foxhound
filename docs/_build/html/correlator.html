@@ -1,0 +1,217 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+    <title>Correlator Module &#8212; Foxhound 0.1.2 documentation</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="_static/alabaster.css" />
+    <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+    <script src="_static/jquery.js"></script>
+    <script src="_static/underscore.js"></script>
+    <script src="_static/doctools.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Dataset Module" href="dataset.html" />
+    <link rel="prev" title="Causations Module" href="causations.html" />
+   
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <section id="module-correlator">
+<span id="correlator-module"></span><h1>Correlator  Module<a class="headerlink" href="#module-correlator" title="Permalink to this headline">¶</a></h1>
+<dl class="py function">
+<dt class="sig sig-object py" id="correlator.correlate">
+<span class="sig-prename descclassname"><span class="pre">correlator.</span></span><span class="sig-name descname"><span class="pre">correlate</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">margin</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">method</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'pearson'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#correlator.correlate" title="Permalink to this definition">¶</a></dt>
+<dd><p>Find delay and correlation between x and each column o y</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>x</strong> (<cite>pandas.Series</cite>) – Main signal</p></li>
+<li><p><strong>y</strong> (<cite>pandas.DataFrame</cite>) – Secondary signals</p></li>
+<li><p><strong>method</strong> (<cite>str</cite>, optional) – Correlation method. Defaults to <cite>pearson</cite>. Options: <cite>pearson</cite>,`robust`,`kendall`,`spearman`</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>List of correlation coefficients and delays in samples in the same order as y’s columns</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><cite>(List[float], List[int])</cite></p>
+</dd>
+</dl>
+<p class="rubric">Notes</p>
+<p>Uses the pandas method corrwith (which can return pearson, kendall or spearman coefficients) to correlate. If robust
+correlation is used, the mapping presented in <a class="footnote-reference brackets" href="#id3" id="id1">1</a> is used and then Pearson correlation is used. To speedup the lag finding,
+the delays are calculated in log intervals and then interpolated by splines, as shown in <a class="footnote-reference brackets" href="#id4" id="id2">2</a>, and the lag with maximum correlation
+found in this interpolated function is then used as the delay.</p>
+<p class="rubric">References</p>
+<dl class="footnote brackets">
+<dt class="label" id="id3"><span class="brackets"><a class="fn-backref" href="#id1">1</a></span></dt>
+<dd><p>Raymaekers, J., Rousseeuw, P. “Fast Robust Correlation for High-Dimensional Data”, Technometrics, vol. 63, Pages 184-198, 2021</p>
+</dd>
+<dt class="label" id="id4"><span class="brackets"><a class="fn-backref" href="#id2">2</a></span></dt>
+<dd><p>Sakurai, Yasushi &amp; Papadimitriou, Spiros &amp; Faloutsos, Christos. (2005). BRAID: Stream mining through group lag correlations. Proceedings of the ACM SIGMOD International Conference on Management of Data. 599-610.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="correlator.find_delays">
+<span class="sig-prename descclassname"><span class="pre">correlator.</span></span><span class="sig-name descname"><span class="pre">find_delays</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#correlator.find_delays" title="Permalink to this definition">¶</a></dt>
+<dd><p>Find delay between x and each column o y</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>x</strong> (<cite>pandas.Series</cite>) – Main signal</p></li>
+<li><p><strong>y</strong> (<cite>pandas.DataFrame</cite>) – Secondary signals</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Dataframe with the delay value for each column of y</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><cite>pandas.DataFrame</cite></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="correlator.interpolate">
+<span class="sig-prename descclassname"><span class="pre">correlator.</span></span><span class="sig-name descname"><span class="pre">interpolate</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">idx</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">margin</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#correlator.interpolate" title="Permalink to this definition">¶</a></dt>
+<dd><p>Interpolate data to match idx+-margin</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>x</strong> (<cite>pandas.Dataframe</cite>) – Signal</p></li>
+<li><p><strong>idx</strong> (<cite>pandas.DatetimeIndex</cite>) – Index to match</p></li>
+<li><p><strong>margin</strong> (<cite>float</cite>) – Percentage of values to add to each side of index</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Dataframe with the same columns as x interpolated to match idx+-margin</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><cite>pandas.DataFrame</cite></p>
+</dd>
+</dl>
+<p class="rubric">Notes</p>
+<p>It infers the frequency for the given DatetimeIndex and extends it to margin times prior
+and after. This new DatetimeIndex is then combined with the given DataFrame and the NaN
+values are completed with linear interpolation then. In the end, only the new index values
+are kept, so that it matches exactly the given idx dates (except for the margin values).</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="correlator.lagged_corr">
+<span class="sig-prename descclassname"><span class="pre">correlator.</span></span><span class="sig-name descname"><span class="pre">lagged_corr</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lag</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">method</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'pearson'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#correlator.lagged_corr" title="Permalink to this definition">¶</a></dt>
+<dd><p>Find correlation between x and each column o y for a specific time lag</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>x</strong> (<cite>pandas.Series</cite>) – Main signal</p></li>
+<li><p><strong>y</strong> (<cite>pandas.DataFrame</cite>) – Secondary signals</p></li>
+<li><p><strong>lag</strong> (<cite>int</cite>) – Number of samples to apply as lag before computing the correlation</p></li>
+<li><p><strong>method</strong> (<cite>str</cite>, optional) – Correlation method. Defaults to <cite>pearson</cite>. Options: <cite>pearson</cite>,`kendall`,`spearman`</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Dataframe with the correlation value for each column of y</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><cite>pandas.DataFrame</cite></p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="index.html">Foxhound</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="causations.html">Causations  Module</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Correlator  Module</a></li>
+<li class="toctree-l1"><a class="reference internal" href="dataset.html">Dataset Module</a></li>
+<li class="toctree-l1"><a class="reference internal" href="epics_requests.html">EPICS Requests Module</a></li>
+<li class="toctree-l1"><a class="reference internal" href="layout.html">Layout Module</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tcdf.html">TCDF Module</a></li>
+<li class="toctree-l1"><a class="reference internal" href="plots.html">Plots Module</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="index.html">Documentation overview</a><ul>
+      <li>Previous: <a href="causations.html" title="previous chapter">Causations  Module</a></li>
+      <li>Next: <a href="dataset.html" title="next chapter">Dataset Module</a></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2021, João Gabriel Segato Kruse.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 4.2.0</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+      |
+      <a href="_sources/correlator.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

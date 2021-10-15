@@ -4,7 +4,8 @@ This has the main goal of automating the process of finding correlations among m
 
 # Como usar
 
-\* Por enquanto o executável funciona somente para windows 10 (veersão para Linux sendo testada ainda). 
+\* Por enquanto o executável funciona somente para windows 10 (versão para Linux sendo testada ainda). 
+
 Primeiramente, basta baixar e extrair o arquivo 'Foxhound_Windows.zip' em Releases. Para abrir o aplicativo, basta executar o arquivo Foxhound.exe, presente na pasta Foxhound/ extraida (para linux, o arquivo Foxhound_Linux pode ser executado diretamente). Com isso, a seguinte tela será aberta:  
 ![](Imgs/main_page.png)  
 O programa permite o uso de um dataset próprio ou das variáveis presentes no EPICS.
@@ -22,6 +23,9 @@ Com um sinal principal e um intervalo temporal escolhidos, agora iremos escolher
 
 ### Correlacionando
 Depois de ter os sinais todos escolhidos, basta clicar em 'Correlate' para realizar a correlação. Isso pode levar um tempo significativo dependendo do número de variáveis envolvidas e das margens usadas. Quando a correlação é finalizada, uma lista em ordem decrescente de correlação aparecerá, indicando o coeficiente de Pearson da correlação entre as variáveis e sua fase. Clicando em um sinal nessa lista o mostrará no gráfico em conjunto com o sinal principal. A checkbox 'Delay Corrected Signal:' é usada para optar mostrar o sinal com a fase corrigida e a checkbox 'Original Signal' é usada para mostrar o sinal original, sem essa correção. Ao menos uma dessas duas opções precisa ser selecionada. É importante ressaltar que ela não atualiza o gráfico que está aparecendo na tela atualmente, é necessário selecioná-lo novamente para corrigir/descorrigir sua fase.
+
+### Causalidade
+Uma opção ao invés da correlação é utilizar o método de causalidade, que criará um gráfico causal com as variáveis envolvidas.
 
 ## Dataset próprio
 
