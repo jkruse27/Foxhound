@@ -1,0 +1,115 @@
+\begin{sphinxtheindex}
+\let\bigletter\sphinxstyleindexlettergroup
+\let\spxpagem \sphinxstyleindexpagemain
+\let\spxentry \sphinxstyleindexentry
+\let\spxextra \sphinxstyleindexextra
+
+  \bigletter C
+  \item \spxentry{call\_fetch()}\spxextra{in module epics\_requests}, \hyperpage{9}
+  \item \spxentry{causation()}\spxextra{dataset.Dataset method}, \hyperpage{5}
+  \item \spxentry{causation\_EPICS()}\spxextra{dataset.Dataset method}, \hyperpage{6}
+  \item \spxentry{causations}
+    \subitem \spxentry{module}, \hyperpage{1}
+  \item \spxentry{Causations}\spxextra{class in causations}, \hyperpage{1}
+  \item \spxentry{clear()}\spxextra{plots.Plots method}, \hyperpage{15}
+  \item \spxentry{correct\_datetime()}\spxextra{in module epics\_requests}, \hyperpage{9}
+  \item \spxentry{correlate()}\spxextra{dataset.Dataset method}, \hyperpage{6}
+  \item \spxentry{correlate()}\spxextra{in module correlator}, \hyperpage{3}
+  \item \spxentry{correlate\_EPICS()}\spxextra{dataset.Dataset method}, \hyperpage{7}
+  \item \spxentry{correlator}
+    \subitem \spxentry{module}, \hyperpage{3}
+
+  \indexspace
+  \bigletter D
+  \item \spxentry{dataset}
+    \subitem \spxentry{module}, \hyperpage{5}
+  \item \spxentry{Dataset}\spxextra{class in dataset}, \hyperpage{5}
+  \item \spxentry{dataset}\spxextra{dataset.Dataset attribute}, \hyperpage{5}
+
+  \indexspace
+  \bigletter E
+  \item \spxentry{EPICS}\spxextra{dataset.Dataset attribute}, \hyperpage{5}
+  \item \spxentry{epics\_requests}
+    \subitem \spxentry{module}, \hyperpage{9}
+
+  \indexspace
+  \bigletter F
+  \item \spxentry{find\_delays()}\spxextra{in module correlator}, \hyperpage{3}
+  \item \spxentry{findcauses()}\spxextra{in module tcdf}, \hyperpage{13}
+
+  \indexspace
+  \bigletter G
+  \item \spxentry{get\_causation()}\spxextra{causations.Causations method}, \hyperpage{1}
+  \item \spxentry{get\_columns()}\spxextra{dataset.Dataset method}, \hyperpage{7}
+  \item \spxentry{get\_EPICS\_pv()}\spxextra{dataset.Dataset method}, \hyperpage{7}
+  \item \spxentry{get\_error\_layout()}\spxextra{in module layout}, \hyperpage{11}
+  \item \spxentry{get\_fig\_size()}\spxextra{in module layout}, \hyperpage{11}
+  \item \spxentry{get\_fs()}\spxextra{dataset.Dataset method}, \hyperpage{7}
+  \item \spxentry{get\_layout()}\spxextra{in module layout}, \hyperpage{11}
+  \item \spxentry{get\_names()}\spxextra{in module epics\_requests}, \hyperpage{9}
+  \item \spxentry{get\_param\_layout()}\spxextra{in module layout}, \hyperpage{11}
+  \item \spxentry{get\_times()}\spxextra{plots.Plots method}, \hyperpage{15}
+  \item \spxentry{getextendeddelays()}\spxextra{causations.Causations method}, \hyperpage{1}
+
+  \indexspace
+  \bigletter I
+  \item \spxentry{interpolate()}\spxextra{in module correlator}, \hyperpage{3}
+
+  \indexspace
+  \bigletter L
+  \item \spxentry{lagged\_corr()}\spxextra{in module correlator}, \hyperpage{4}
+  \item \spxentry{last\_dataset}\spxextra{dataset.Dataset attribute}, \hyperpage{5}
+  \item \spxentry{last\_dataset\_metadata}\spxextra{dataset.Dataset attribute}, \hyperpage{5}
+  \item \spxentry{last\_searches}\spxextra{dataset.Dataset attribute}, \hyperpage{5}
+  \item \spxentry{layout}
+    \subitem \spxentry{module}, \hyperpage{11}
+  \item \spxentry{loop}\spxextra{dataset.Dataset attribute}, \hyperpage{5}
+
+  \indexspace
+  \bigletter M
+  \item \spxentry{module}
+    \subitem \spxentry{causations}, \hyperpage{1}
+    \subitem \spxentry{correlator}, \hyperpage{3}
+    \subitem \spxentry{dataset}, \hyperpage{5}
+    \subitem \spxentry{epics\_requests}, \hyperpage{9}
+    \subitem \spxentry{layout}, \hyperpage{11}
+    \subitem \spxentry{plots}, \hyperpage{15}
+    \subitem \spxentry{tcdf}, \hyperpage{13}
+
+  \indexspace
+  \bigletter N
+  \item \spxentry{number\_of\_vars()}\spxextra{dataset.Dataset method}, \hyperpage{7}
+
+  \indexspace
+  \bigletter O
+  \item \spxentry{on\_click()}\spxextra{plots.Plots method}, \hyperpage{15}
+
+  \indexspace
+  \bigletter P
+  \item \spxentry{plotgraph()}\spxextra{causations.Causations static method}, \hyperpage{1}
+  \item \spxentry{plots}
+    \subitem \spxentry{module}, \hyperpage{15}
+  \item \spxentry{Plots}\spxextra{class in plots}, \hyperpage{15}
+  \item \spxentry{preparedata()}\spxextra{in module tcdf}, \hyperpage{13}
+
+  \indexspace
+  \bigletter R
+  \item \spxentry{runTCDF()}\spxextra{causations.Causations method}, \hyperpage{1}
+
+  \indexspace
+  \bigletter T
+  \item \spxentry{tcdf}
+    \subitem \spxentry{module}, \hyperpage{13}
+  \item \spxentry{to\_date()}\spxextra{dataset.Dataset method}, \hyperpage{8}
+  \item \spxentry{train()}\spxextra{in module tcdf}, \hyperpage{13}
+  \item \spxentry{twinx\_canvas()}\spxextra{plots.Plots method}, \hyperpage{15}
+
+  \indexspace
+  \bigletter U
+  \item \spxentry{update\_canvas()}\spxextra{plots.Plots method}, \hyperpage{15}
+
+  \indexspace
+  \bigletter W
+  \item \spxentry{window\_dimension()}\spxextra{in module layout}, \hyperpage{11}
+
+\end{sphinxtheindex}
