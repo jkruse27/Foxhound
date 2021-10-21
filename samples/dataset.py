@@ -5,7 +5,7 @@ import scipy as sp
 import scipy.signal as sig
 import asyncio
 import correlator as corr
-import causations as TCDF
+import causations
 from datetime import *
 import epics_requests as req
 
@@ -187,7 +187,7 @@ class Dataset():
         
         return delays, corrs, y.columns
 
-    def causation(self, x_label, begin=None, end=None, margin=0.2, options=('Adam',1,4,0.8,4,500,0.01,1000)):
+    def causation(self, x_label, begin=None, end=None, margin=0.2, **opt):
         """ Finds causation graph between x_lab and the PVs in the dataset with TCDF [1]__
 
         Parameters
@@ -227,10 +227,19 @@ class Dataset():
 
         y = corr.interpolate(y,x.index,margin)
 
-        causes = TCDF.Causations(options)
+        causes = causations.Causations(kernel_size = opt.get('kernel_size',4),
+                                levels = opt.get('levels',1),
+                                epochs = opt.get('epochs',1000),
+                                learningrate = opt.get('learningrate',0.01),
+                                optimizer = opt.get('optimizer','Adam'),
+                                dilation = opt.get('dilation',4),
+                                loginterval = opt.get('loginterval'),
+                                seed= opt.get('seed', 111),
+                                cuda = opt.get('cuda', False),
+                                significance = opt.get('significance',0.8))
         return causes.get_causation(pd.concat([x, y], axis=1).fillna(0))
 
-    def causation_EPICS(self, x_label, regex, begin=None, end=None, margin=0.2, options=('Adam',1,4,0.8,4,500,0.01,1000)):
+    def causation_EPICS(self, x_label, regex, begin=None, end=None, margin=0.2, **opt):
         """ Finds causation graph between x_lab and the PVs in the dataset with TCDF [2]__
 
         Parameters
@@ -264,7 +273,16 @@ class Dataset():
         data = self.get_EPICS_pv(list(dict.fromkeys(pvs+[x_label])), begin-margin*dt, end+margin*dt)
         y = corr.interpolate(y,y.index,0)
 
-        causes = TCDF.Causations(options)
+        causes = causations.Causations(kernel_size = opt.get('kernel_size',4),
+                                levels = opt.get('levels',1),
+                                epochs = opt.get('epochs',1000),
+                                learningrate = opt.get('learningrate',0.01),
+                                optimizer = opt.get('optimizer','Adam'),
+                                dilation = opt.get('dilation',4),
+                                loginterval = opt.get('loginterval'),
+                                seed= opt.get('seed', 111),
+                                cuda = opt.get('cuda', False),
+                                significance = opt.get('significance',0.8))
         return causes.get_causation(y)
 
 

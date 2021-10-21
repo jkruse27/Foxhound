@@ -11,7 +11,7 @@ import scipy.signal as sig
 import matplotlib
 from dataset import Dataset
 from datetime import *
-from plots import *
+from plots import Plots
 import pytz
 import webbrowser
 import threading
@@ -47,7 +47,14 @@ class App():
         self.ax3 = None
         self.main_variable = None
 
-        self.causes = cause.Causations(('Adam',1,4,0.8,4,500,0.01,1000))
+        self.causes = cause.Causations(optimizer = 'Adam',
+                                        levels = 1,
+                                        kernel_size = 4,
+                                        significance = 0.8,
+                                        dilation = 4,
+                                        loginterval = 500,
+                                        learningrate=0.01,
+                                        epochs=1000)
         self.plots = Plots(self.window[cte.CANVAS].TKCanvas,*self.layout.get_fig_size())
         requests.packages.urllib3.disable_warnings(InsecureRequestWarning)
 
@@ -126,9 +133,32 @@ class App():
         if(self.is_EPICS):
             if(regex == ''):
                 regex = ".*"
-            all_delays, columns = self.dataset.causation_EPICS(main_var, regex, begin_date, end_date, margin,options)
+            all_delays, columns = self.dataset.causation_EPICS(main_var, 
+                                                            regex, 
+                                                            begin_date, 
+                                                            end_date, 
+                                                            margin,
+                                                            optimizer = options['optimizer'],
+                                                            levels = options['levels'],
+                                                            kernel_size = options['kernel_size'],
+                                                            significance = options['significance'],
+                                                            dilation = options['dilation'],
+                                                            loginterval = options['loginterval'],
+                                                            learningrate = options['learningrate'],
+                                                            epochs = options['epochs'])
         else:
-            all_delays, columns = self.dataset.causation(main_var, begin_date, end_date, margin, options)
+            all_delays, columns = self.dataset.causation(main_var, 
+                                                        begin_date, 
+                                                        end_date, 
+                                                        margin, 
+                                                        optimizer = options['optimizer'],
+                                                        levels = options['levels'],
+                                                        kernel_size = options['kernel_size'],
+                                                        significance = options['significance'],
+                                                        dilation = options['dilation'],
+                                                        loginterval = options['loginterval'],
+                                                        learningrate = options['learningrate'],
+                                                        epochs = options['epochs'])
 
         window.write_event_value(cte.CAUSATION, (all_delays,columns))
 
@@ -349,10 +379,14 @@ class App():
               
         elif event==cte.CREATE:
             self.choosing_params = False
-            opts = (values[cte.OPTIMIZER],values[cte.LEVEL],
-                    values[cte.KERNEL],values[cte.SIGNIFICANCE],
-                    values[cte.DILATION],values[cte.LOGINT],
-                    values[cte.RATE],values[cte.EPOCHS]),
+            opts = {'optimizer': values[cte.OPTIMIZER],
+                    'levels': int(values[cte.LEVEL]),
+                    'kernel_size': int(values[cte.KERNEL]),
+                    'significance': float(values[cte.SIGNIFICANCE]),
+                    'dilation': int(values[cte.DILATION]),
+                    'loginterval': int(values[cte.LOGINT]),
+                    'learningrate': float(values[cte.RATE]),
+                    'epochs': int(values[cte.EPOCHS])}
             self.params.close()
             self.window.write_event_value(cte.START_CAUSATION, opts)
 
@@ -379,22 +413,22 @@ class App():
                 sg.Popup('Erro na correlação')
         
         elif event == cte.START_CAUSATION:
-            try:
+            #try:
                 if(self.thread == None):
                     self.thread = threading.Thread(target=self.causal_discovery, args=(self.main_variable, 
                                                                    self.begin_date,
                                                                    self.end_date, 
                                                                    float(values[cte.MARGIN]), 
                                                                    self.clean_regex(values[cte.REGEX]), 
-                                                                   values[cte.START_CAUSATION][0],
+                                                                   values[cte.START_CAUSATION],
                                                                    self.is_EPICS,self.window), daemon=True)
                     self.thread.start()
                     self.timeout = 100
                     sg.popup_animated(sg.DEFAULT_BASE64_LOADING_GIF, background_color='white', transparent_color='white', time_between_frames=self.timeout)
                     self.running = True
-            except:
-                self.stop_loading()
-                sg.Popup('Erro ao buscar causas')
+            #except:
+            #    self.stop_loading()
+            #    sg.Popup('Erro ao buscar causas')
 
         elif event == cte.THREAD:
             try:

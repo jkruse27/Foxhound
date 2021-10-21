@@ -14,17 +14,17 @@ class Causations():
     """Class responsible for causation finding with TCDF
     """
 
-    def __init__(self,options,seed=111,cuda=False):
-        self.kernel_size = int(options[2])
-        self.levels = int(options[1])
-        self.nrepochs = int(options[7])
-        self.learningrate = float(options[6])
-        self.optimizername = options[0]
-        self.dilation_c = int(options[4])
-        self.loginterval = int(options[5])
-        self.seed=seed
-        self.cuda=cuda
-        self.significance=float(options[3])
+    def __init__(self, **opt):
+        self.kernel_size = opt.get('kernel_size',4)
+        self.levels = opt.get('levels',1)
+        self.nrepochs = opt.get('epochs',1000)
+        self.learningrate = opt.get('learningrate',0.01)
+        self.optimizername = opt.get('optimizer','Adam')
+        self.dilation_c = opt.get('dilation',4)
+        self.loginterval = opt.get('loginterval')
+        self.seed= opt.get('seed', 111)
+        self.cuda = opt.get('cuda', False)
+        self.significance = opt.get('significance',0.8)
 
     def getextendeddelays(self, gtfile, columns):
         """Collects the total delay of indirect causal relationships."""
@@ -93,7 +93,7 @@ class Causations():
         columns = list(df_data)
         for c in columns:
             idx = df_data.columns.get_loc(c)
-            causes, causeswithdelay, realloss, scores = TCDF.findcauses(c, cuda=self.cuda, epochs=self.nrepochs, 
+            causes, causeswithdelay, realloss, scores = tcdf.findcauses(c, cuda=self.cuda, epochs=self.nrepochs, 
             kernel_size=self.kernel_size, layers=self.levels, log_interval=self.loginterval, 
             lr=self.learningrate, optimizername=self.optimizername,
             seed=self.seed, dilation_c=self.dilation_c, significance=self.significance, data=df_data)
