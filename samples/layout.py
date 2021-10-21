@@ -114,7 +114,7 @@ def get_layout():
             ]]
 
     regex_block = [
-            [sg.Text('Examples:\n\n.*HLS.* for all PVs with HLS in the name\n(.*HLS.*)?(.*MARE.*)? for all PVs with HLS OR MARE in the name\n')],
+            [sg.Text('Examples:\n\nHLS for all PVs with HLS in the name\nHLS MARE for all PVs with HLS OR MARE in the name\n')],
         [sg.Text("Regex: ", enable_events=True, key=cte.REDIRECT),
         sg.Input(key=cte.REGEX, size=(int(tw/4),1)),
         sg.Button(cte.CHOOSE)],

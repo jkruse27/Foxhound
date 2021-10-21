@@ -9,6 +9,14 @@ import scipy.interpolate as inter
 This module encapsulates functions related to correlation, causation and data formatting
 """
 
+b = 1.5
+c = 4
+q1 = 1.540793
+q2 = 0.8622731
+
+z = lambda x: (x-x.mean())/np.std(x, ddof=1)
+g = lambda x: x if abs(x) <= b else q1*np.tanh(q2*(c-abs(x)))*np.sign(x) if abs(x) <= c else 0
+
 def correlate(x, y, margin, method='pearson'):
     """ Find delay and correlation between x and each column o y
 
@@ -41,15 +49,8 @@ def correlate(x, y, margin, method='pearson'):
 
     """
     beg, end = (x.index.min(), x.index.max())
-
-    b = 1.5
-    c = 4
-    q1 = 1.540793
-    q2 = 0.8622731
-
-    z = lambda x: (x-x.mean())/np.std(x, ddof=1)
-    g = lambda x: x if abs(x) <= b else q1*np.tanh(q2*(c-abs(x)))*np.sign(x) if abs(x) <= c else 0
-
+    y = interpolate(y,x.index,margin)
+    
     if(method == 'robust'):
         method='pearson'
         x = pd.Series(z(sig.detrend(x)), index=x.index, name=x.name)
@@ -64,6 +65,7 @@ def correlate(x, y, margin, method='pearson'):
     log_lags = list(-1*log_lags)[::-1]+[-3,-2,-1,0,1,2,3]+list(log_lags)
 
     new_lags = list(range(-1*max(log_lags),max(log_lags)+1))
+
     vals = pd.DataFrame([lagged_corr(x,y,lag,method) for lag in log_lags])
     vals = vals.apply(lambda s: inter.make_interp_spline(log_lags, abs(s),k=3)(new_lags))
     peaks = vals.apply(lambda s: pd.Series([new_lags[i] for i in sig.find_peaks(s)[0]]+[new_lags[max(range(len(s)), key=s.__getitem__)]]).drop_duplicates())

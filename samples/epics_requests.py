@@ -105,6 +105,8 @@ async def fetch_data(pv_list, timespam):
         series.append(s)
     data = pd.concat(series,axis=1)
     data = data.fillna(method='ffill', axis=1)
+    data = data.fillna(0)
+
     # indexing by datetime
     #data.reset_index(drop=True, inplace=True)
     #data = data.set_index('datetime')
