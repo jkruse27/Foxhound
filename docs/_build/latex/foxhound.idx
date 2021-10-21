@@ -1,0 +1,74 @@
+\indexentry{module@\spxentry{module}!application\_logic@\spxentry{application\_logic}|hyperpage}{1}
+\indexentry{application\_logic@\spxentry{application\_logic}!module@\spxentry{module}|hyperpage}{1}
+\indexentry{App (class in application\_logic)@\spxentry{App}\spxextra{class in application\_logic}|hyperpage}{1}
+\indexentry{Toolbar (class in application\_logic)@\spxentry{Toolbar}\spxextra{class in application\_logic}|hyperpage}{1}
+\indexentry{module@\spxentry{module}!interface@\spxentry{interface}|hyperpage}{3}
+\indexentry{interface@\spxentry{interface}!module@\spxentry{module}|hyperpage}{3}
+\indexentry{Interface (class in interface)@\spxentry{Interface}\spxextra{class in interface}|hyperpage}{3}
+\indexentry{create\_tree() (interface.Interface method)@\spxentry{create\_tree()}\spxextra{interface.Interface method}|hyperpage}{3}
+\indexentry{create\_window() (interface.Interface method)@\spxentry{create\_window()}\spxextra{interface.Interface method}|hyperpage}{3}
+\indexentry{get\_selected\_row() (interface.Interface method)@\spxentry{get\_selected\_row()}\spxextra{interface.Interface method}|hyperpage}{3}
+\indexentry{get\_window() (interface.Interface method)@\spxentry{get\_window()}\spxextra{interface.Interface method}|hyperpage}{3}
+\indexentry{popup() (interface.Interface method)@\spxentry{popup()}\spxextra{interface.Interface method}|hyperpage}{3}
+\indexentry{read\_events() (interface.Interface method)@\spxentry{read\_events()}\spxextra{interface.Interface method}|hyperpage}{4}
+\indexentry{start\_loading() (interface.Interface method)@\spxentry{start\_loading()}\spxextra{interface.Interface method}|hyperpage}{4}
+\indexentry{stop\_loading() (interface.Interface method)@\spxentry{stop\_loading()}\spxextra{interface.Interface method}|hyperpage}{4}
+\indexentry{update\_element() (interface.Interface method)@\spxentry{update\_element()}\spxextra{interface.Interface method}|hyperpage}{4}
+\indexentry{update\_tree() (interface.Interface method)@\spxentry{update\_tree()}\spxextra{interface.Interface method}|hyperpage}{4}
+\indexentry{write\_event() (interface.Interface method)@\spxentry{write\_event()}\spxextra{interface.Interface method}|hyperpage}{4}
+\indexentry{module@\spxentry{module}!causations@\spxentry{causations}|hyperpage}{5}
+\indexentry{causations@\spxentry{causations}!module@\spxentry{module}|hyperpage}{5}
+\indexentry{Causations (class in causations)@\spxentry{Causations}\spxextra{class in causations}|hyperpage}{5}
+\indexentry{get\_causation() (causations.Causations method)@\spxentry{get\_causation()}\spxextra{causations.Causations method}|hyperpage}{5}
+\indexentry{getextendeddelays() (causations.Causations method)@\spxentry{getextendeddelays()}\spxextra{causations.Causations method}|hyperpage}{5}
+\indexentry{plotgraph() (causations.Causations static method)@\spxentry{plotgraph()}\spxextra{causations.Causations static method}|hyperpage}{5}
+\indexentry{runTCDF() (causations.Causations method)@\spxentry{runTCDF()}\spxextra{causations.Causations method}|hyperpage}{5}
+\indexentry{module@\spxentry{module}!correlator@\spxentry{correlator}|hyperpage}{7}
+\indexentry{correlator@\spxentry{correlator}!module@\spxentry{module}|hyperpage}{7}
+\indexentry{correlate() (in module correlator)@\spxentry{correlate()}\spxextra{in module correlator}|hyperpage}{7}
+\indexentry{find\_delays() (in module correlator)@\spxentry{find\_delays()}\spxextra{in module correlator}|hyperpage}{7}
+\indexentry{interpolate() (in module correlator)@\spxentry{interpolate()}\spxextra{in module correlator}|hyperpage}{7}
+\indexentry{lagged\_corr() (in module correlator)@\spxentry{lagged\_corr()}\spxextra{in module correlator}|hyperpage}{8}
+\indexentry{module@\spxentry{module}!dataset@\spxentry{dataset}|hyperpage}{9}
+\indexentry{dataset@\spxentry{dataset}!module@\spxentry{module}|hyperpage}{9}
+\indexentry{Dataset (class in dataset)@\spxentry{Dataset}\spxextra{class in dataset}|hyperpage}{9}
+\indexentry{EPICS (dataset.Dataset attribute)@\spxentry{EPICS}\spxextra{dataset.Dataset attribute}|hyperpage}{9}
+\indexentry{dataset (dataset.Dataset attribute)@\spxentry{dataset}\spxextra{dataset.Dataset attribute}|hyperpage}{9}
+\indexentry{loop (dataset.Dataset attribute)@\spxentry{loop}\spxextra{dataset.Dataset attribute}|hyperpage}{9}
+\indexentry{last\_searches (dataset.Dataset attribute)@\spxentry{last\_searches}\spxextra{dataset.Dataset attribute}|hyperpage}{9}
+\indexentry{last\_dataset\_metadata (dataset.Dataset attribute)@\spxentry{last\_dataset\_metadata}\spxextra{dataset.Dataset attribute}|hyperpage}{9}
+\indexentry{last\_dataset (dataset.Dataset attribute)@\spxentry{last\_dataset}\spxextra{dataset.Dataset attribute}|hyperpage}{9}
+\indexentry{causation() (dataset.Dataset method)@\spxentry{causation()}\spxextra{dataset.Dataset method}|hyperpage}{9}
+\indexentry{causation\_EPICS() (dataset.Dataset method)@\spxentry{causation\_EPICS()}\spxextra{dataset.Dataset method}|hyperpage}{10}
+\indexentry{correlate() (dataset.Dataset method)@\spxentry{correlate()}\spxextra{dataset.Dataset method}|hyperpage}{10}
+\indexentry{correlate\_EPICS() (dataset.Dataset method)@\spxentry{correlate\_EPICS()}\spxextra{dataset.Dataset method}|hyperpage}{11}
+\indexentry{get\_EPICS\_pv() (dataset.Dataset method)@\spxentry{get\_EPICS\_pv()}\spxextra{dataset.Dataset method}|hyperpage}{11}
+\indexentry{get\_columns() (dataset.Dataset method)@\spxentry{get\_columns()}\spxextra{dataset.Dataset method}|hyperpage}{11}
+\indexentry{get\_fs() (dataset.Dataset method)@\spxentry{get\_fs()}\spxextra{dataset.Dataset method}|hyperpage}{11}
+\indexentry{number\_of\_vars() (dataset.Dataset method)@\spxentry{number\_of\_vars()}\spxextra{dataset.Dataset method}|hyperpage}{11}
+\indexentry{to\_date() (dataset.Dataset method)@\spxentry{to\_date()}\spxextra{dataset.Dataset method}|hyperpage}{12}
+\indexentry{module@\spxentry{module}!epics\_requests@\spxentry{epics\_requests}|hyperpage}{13}
+\indexentry{epics\_requests@\spxentry{epics\_requests}!module@\spxentry{module}|hyperpage}{13}
+\indexentry{call\_fetch() (in module epics\_requests)@\spxentry{call\_fetch()}\spxextra{in module epics\_requests}|hyperpage}{13}
+\indexentry{correct\_datetime() (in module epics\_requests)@\spxentry{correct\_datetime()}\spxextra{in module epics\_requests}|hyperpage}{13}
+\indexentry{get\_names() (in module epics\_requests)@\spxentry{get\_names()}\spxextra{in module epics\_requests}|hyperpage}{13}
+\indexentry{module@\spxentry{module}!layout@\spxentry{layout}|hyperpage}{15}
+\indexentry{layout@\spxentry{layout}!module@\spxentry{module}|hyperpage}{15}
+\indexentry{get\_error\_layout() (in module layout)@\spxentry{get\_error\_layout()}\spxextra{in module layout}|hyperpage}{15}
+\indexentry{get\_fig\_size() (in module layout)@\spxentry{get\_fig\_size()}\spxextra{in module layout}|hyperpage}{15}
+\indexentry{get\_layout() (in module layout)@\spxentry{get\_layout()}\spxextra{in module layout}|hyperpage}{15}
+\indexentry{get\_param\_layout() (in module layout)@\spxentry{get\_param\_layout()}\spxextra{in module layout}|hyperpage}{15}
+\indexentry{window\_dimension() (in module layout)@\spxentry{window\_dimension()}\spxextra{in module layout}|hyperpage}{15}
+\indexentry{module@\spxentry{module}!tcdf@\spxentry{tcdf}|hyperpage}{17}
+\indexentry{tcdf@\spxentry{tcdf}!module@\spxentry{module}|hyperpage}{17}
+\indexentry{findcauses() (in module tcdf)@\spxentry{findcauses()}\spxextra{in module tcdf}|hyperpage}{17}
+\indexentry{preparedata() (in module tcdf)@\spxentry{preparedata()}\spxextra{in module tcdf}|hyperpage}{17}
+\indexentry{train() (in module tcdf)@\spxentry{train()}\spxextra{in module tcdf}|hyperpage}{17}
+\indexentry{module@\spxentry{module}!plots@\spxentry{plots}|hyperpage}{19}
+\indexentry{plots@\spxentry{plots}!module@\spxentry{module}|hyperpage}{19}
+\indexentry{Plots (class in plots)@\spxentry{Plots}\spxextra{class in plots}|hyperpage}{19}
+\indexentry{clear() (plots.Plots method)@\spxentry{clear()}\spxextra{plots.Plots method}|hyperpage}{19}
+\indexentry{get\_times() (plots.Plots method)@\spxentry{get\_times()}\spxextra{plots.Plots method}|hyperpage}{19}
+\indexentry{on\_click() (plots.Plots method)@\spxentry{on\_click()}\spxextra{plots.Plots method}|hyperpage}{19}
+\indexentry{twinx\_canvas() (plots.Plots method)@\spxentry{twinx\_canvas()}\spxextra{plots.Plots method}|hyperpage}{19}
+\indexentry{update\_canvas() (plots.Plots method)@\spxentry{update\_canvas()}\spxextra{plots.Plots method}|hyperpage}{19}

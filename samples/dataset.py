@@ -271,7 +271,9 @@ class Dataset():
         pvs = req.get_names(regex=regex, limit=-1)
         dt = end-begin
         data = self.get_EPICS_pv(list(dict.fromkeys(pvs+[x_label])), begin-margin*dt, end+margin*dt)
-        y = corr.interpolate(y,y.index,0)
+        x = data[x_label].loc[begin:end]
+        y = data.drop(x_label, axis=1)
+        y = corr.interpolate(y,x.index,0)
 
         causes = causations.Causations(kernel_size = opt.get('kernel_size',4),
                                 levels = opt.get('levels',1),

@@ -1,0 +1,290 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+    <title>Interface Module &#8212; Foxhound 0.1.2 documentation</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="_static/alabaster.css" />
+    <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+    <script src="_static/jquery.js"></script>
+    <script src="_static/underscore.js"></script>
+    <script src="_static/doctools.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Causations Module" href="causations.html" />
+    <link rel="prev" title="Application Logic Module" href="application_logic.html" />
+   
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <section id="module-interface">
+<span id="interface-module"></span><h1>Interface  Module<a class="headerlink" href="#module-interface" title="Permalink to this headline">¶</a></h1>
+<dl class="py class">
+<dt class="sig sig-object py" id="interface.Interface">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">interface.</span></span><span class="sig-name descname"><span class="pre">Interface</span></span><a class="headerlink" href="#interface.Interface" title="Permalink to this definition">¶</a></dt>
+<dd><p>Class responsible for all interfaces with the UI,
+managing the opened windows and reading and writting
+to the UI.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="interface.Interface.create_tree">
+<span class="sig-name descname"><span class="pre">create_tree</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">values</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">index</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#interface.Interface.create_tree" title="Permalink to this definition">¶</a></dt>
+<dd><p>Create tree structure to display</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>values</strong> (<em>iterable</em>) – iterable with the element for each position on the tree</p></li>
+<li><p><strong>index</strong> (<em>iterable</em><em>, </em><em>optional</em>) – Indexes to use instead of the position of the element in values</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Tree with the given data</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>sg.Tree</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="interface.Interface.create_window">
+<span class="sig-name descname"><span class="pre">create_window</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">layout</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">opt</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#interface.Interface.create_window" title="Permalink to this definition">¶</a></dt>
+<dd><p>Create window with the given specifications</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>name</strong> (<em>str</em>) – Window name</p></li>
+<li><p><strong>layout</strong> (<em>List</em><em>[</em><em>List</em><em>[</em><em>Element</em><em>]</em><em>]</em>) – Layout for the window</p></li>
+<li><p><strong>**opt</strong> (<em>kwargs</em>) – Optional parameters (icon, resizable, maximizer, etc)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Window identifier for reading and writting from and to this specific window</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>int</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="interface.Interface.get_selected_row">
+<span class="sig-name descname"><span class="pre">get_selected_row</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">element</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">index</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#interface.Interface.get_selected_row" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get selected row from tree</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>element</strong> (<em>str</em>) – Key for the tree element on the window</p></li>
+<li><p><strong>index</strong> (<em>int</em><em>, </em><em>optional</em>) – Identifier for which window to get from</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="interface.Interface.get_window">
+<span class="sig-name descname"><span class="pre">get_window</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#interface.Interface.get_window" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get window</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>index</strong> (<em>int</em><em>, </em><em>optional</em>) – Window identifier (default is 0, meaning the first window created)</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Window object</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>sg.Window</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="interface.Interface.popup">
+<span class="sig-name descname"><span class="pre">popup</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">message</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#interface.Interface.popup" title="Permalink to this definition">¶</a></dt>
+<dd><p>Display popup with message</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>message</strong> (<em>str</em>) – Message to be displayed</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="interface.Interface.read_events">
+<span class="sig-name descname"><span class="pre">read_events</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">timeout</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">index</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#interface.Interface.read_events" title="Permalink to this definition">¶</a></dt>
+<dd><p>Read events and values from window</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>timeout</strong> (<em>int</em><em>, </em><em>optional</em>) – Timeout to wait for event in ms (default: None)</p></li>
+<li><p><strong>index</strong> (<em>index</em>) – Identifier for the target window (default: 0)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Events and values of the given window</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>(events, values)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="interface.Interface.start_loading">
+<span class="sig-name descname"><span class="pre">start_loading</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">timeout</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">100</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#interface.Interface.start_loading" title="Permalink to this definition">¶</a></dt>
+<dd><p>Start displaying loading screen</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>timeout</strong> (<em>int</em>) – Timeout between frames in ms</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="interface.Interface.stop_loading">
+<span class="sig-name descname"><span class="pre">stop_loading</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#interface.Interface.stop_loading" title="Permalink to this definition">¶</a></dt>
+<dd><p>Stop loading animation</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="interface.Interface.update_element">
+<span class="sig-name descname"><span class="pre">update_element</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">element</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">arg_name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'value'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">index</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#interface.Interface.update_element" title="Permalink to this definition">¶</a></dt>
+<dd><p>Updates the element on the screen</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>data</strong> (<em>Object</em>) – Data to be updated</p></li>
+<li><p><strong>element</strong> (<em>str</em>) – Key for the element on the window</p></li>
+<li><p><strong>arg_name</strong> (<em>str</em><em>, </em><em>optional</em>) – Name of the argument in the Update method</p></li>
+<li><p><strong>index</strong> (<em>int</em><em>, </em><em>optional</em>) – Identifier for which window to update</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="interface.Interface.update_tree">
+<span class="sig-name descname"><span class="pre">update_tree</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">element</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">index</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#interface.Interface.update_tree" title="Permalink to this definition">¶</a></dt>
+<dd><p>Updates the tree on the screen</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>data</strong> (<em>iterable</em>) – Data representing the tree</p></li>
+<li><p><strong>element</strong> (<em>str</em>) – Key for the tree element on the window</p></li>
+<li><p><strong>index</strong> (<em>int</em><em>, </em><em>optional</em>) – Identifier for which window to update</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="interface.Interface.write_event">
+<span class="sig-name descname"><span class="pre">write_event</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">params</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">index</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#interface.Interface.write_event" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get selected row from tree</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>name</strong> (<em>str</em>) – Key for the event name</p></li>
+<li><p><strong>params</strong> (<em>Object</em>) – Parameters to pass to the event</p></li>
+<li><p><strong>index</strong> (<em>int</em><em>, </em><em>optional</em>) – Identifier for which window to create from</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="index.html">Foxhound</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="application_logic.html">Application Logic  Module</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Interface  Module</a></li>
+<li class="toctree-l1"><a class="reference internal" href="causations.html">Causations  Module</a></li>
+<li class="toctree-l1"><a class="reference internal" href="correlator.html">Correlator  Module</a></li>
+<li class="toctree-l1"><a class="reference internal" href="dataset.html">Dataset Module</a></li>
+<li class="toctree-l1"><a class="reference internal" href="epics_requests.html">EPICS Requests Module</a></li>
+<li class="toctree-l1"><a class="reference internal" href="layout.html">Layout Module</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tcdf.html">TCDF Module</a></li>
+<li class="toctree-l1"><a class="reference internal" href="plots.html">Plots Module</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="index.html">Documentation overview</a><ul>
+      <li>Previous: <a href="application_logic.html" title="previous chapter">Application Logic  Module</a></li>
+      <li>Next: <a href="causations.html" title="next chapter">Causations  Module</a></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2021, João Gabriel Segato Kruse.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 4.2.0</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+      |
+      <a href="_sources/interface.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

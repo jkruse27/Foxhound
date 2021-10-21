@@ -92,7 +92,6 @@ class Plots():
         Action to be performed when the plot is clicked. Manages the markers in the plot
         """
         if event.inaxes is not None:
-            print(event.inaxes==self.ax3)
             if(event.button == MouseButton.LEFT and (self.end == None or self.end_x >= event.xdata)):
                 if(self.beg == None):
                     self.beg = self.axs1.axvline(x=event.xdata, color='k', linestyle='--')
