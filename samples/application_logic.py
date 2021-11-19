@@ -28,15 +28,12 @@ Module to control the application.
 matplotlib.use('TkAgg')
 VERSION = '(V0.1.2)'
 
-class Toolbar(NavigationToolbar2Tk):
-    def __init__(self, *args, **kwargs):
-        super(Toolbar, self).__init__(*args, **kwargs)
 
 class App():
     """ Class used to control the operations of the application
     """
 
-    def __init__(self, name="Foxhound", img="Imgs/foxhound.ico",config_img="Imgs/config.ico"):
+    def __init__(self, name="Foxhound", img="Imgs/foxhound.ico", config_img="Imgs/config.ico"):
         """Instantiates App object
 
         Parameters
@@ -51,11 +48,12 @@ class App():
         self.config_img = config_img
 
         self.window = itf.Interface()
-        self.window.create_window(name+VERSION, 
-                                layout.get_layout(), 
-                                resizable=True,
-                                icon=img,
-                                maximize=True)
+        self.window.create_window(name+VERSION,
+                                  layout.get_layout(),
+                                  resizable=True,
+                                  icon=img,
+                                  maximize=False,
+                                  expand=[cte.CANVAS])
         self.params = None
         self.layout = layout
 
@@ -70,33 +68,34 @@ class App():
         self.end_date = None
         self.main_variable = None
 
-        self.causes = cause.Causations(optimizer = 'Adam',
-                                        levels = 1,
-                                        kernel_size = 4,
-                                        significance = 0.8,
-                                        dilation = 4,
-                                        loginterval = 500,
-                                        learningrate=0.01,
-                                        epochs=1000)
+        self.causes = cause.Causations(optimizer='Adam',
+                                       levels=1,
+                                       kernel_size=4,
+                                       significance=0.8,
+                                       dilation=4,
+                                       loginterval=500,
+                                       learningrate=0.01,
+                                       epochs=1000)
 
-        self.plots = Plots(self.window.get_canvas(cte.CANVAS),*self.layout.get_fig_size())
+        self.plots = Plots(self.window.get_canvas(
+            cte.CANVAS), *self.layout.get_fig_size())
         requests.packages.urllib3.disable_warnings(InsecureRequestWarning)
 
     def open_dataset(self, name, is_EPICS):
         if(is_EPICS and name != ''):
             self.is_EPICS = False
-            self.dataset = Dataset(name)    
-            self.window.update_tree(self.dataset.get_columns(),cte.PVS)
+            self.dataset = Dataset(name)
+            self.window.update_tree(self.dataset.get_columns(), cte.PVS)
 
         else:
-            self.dataset = Dataset(name)    
-            self.window.update_tree(self.dataset.get_columns(),cte.PVS)
+            self.dataset = Dataset(name)
+            self.window.update_tree(self.dataset.get_columns(), cte.PVS)
 
     def initialize_EPICS(self):
         try:
             self.is_EPICS = True
             self.window.update_element('EPICS', cte.DATASET)
-            self.dataset.update_pv_names(regex=None,limit=100)
+            self.dataset.update_pv_names(regex=None, limit=100)
             data = self.dataset.get_columns()
             self.window.write_event(cte.INITIALIZE, data)
         except:
@@ -105,7 +104,7 @@ class App():
     def update_main_list(self, text, is_EPICS, clicked=False):
         if(is_EPICS and clicked):
             try:
-                self.dataset.update_pv_names(regex=".*"+text+".*",limit=100)
+                self.dataset.update_pv_names(regex=".*"+text+".*", limit=100)
                 data = self.dataset.get_columns()
             except:
                 self.window.write_event(cte.ERROR, 'Error during search')
@@ -121,24 +120,27 @@ class App():
             dt = end_date - begin_date
 
             if(is_EPICS):
-                y = self.dataset.get_EPICS_pv([selected_row], begin_date-margin*dt, end_date+margin*dt)
+                y = self.dataset.get_EPICS_pv(
+                    [selected_row], begin_date-margin*dt, end_date+margin*dt)
                 x = self.dataset.get_EPICS_pv([main_var], begin_date, end_date)
 
             else:
                 y = self.dataset.get_series(selected_row)
-                x = self.dataset.get_series(main_var, begin_date,end_date)
+                x = self.dataset.get_series(main_var, begin_date, end_date)
 
             y1 = []
             colors = []
 
             if(is_delayed):
-                y1.append(y.shift(self.delays[selected_row])[begin_date:end_date])
+                y1.append(y.shift(self.delays[selected_row])[
+                          begin_date:end_date])
                 colors.append('r')
             if(is_original):
                 y1.append(y[begin_date:end_date])
                 colors.append('k')
 
-            self.window.write_event(cte.TWINX, (x,main_var,y1,selected_row,colors,None,'Time'))
+            self.window.write_event(
+                cte.TWINX, (x, main_var, y1, selected_row, colors, None, 'Time'))
         except:
             self.window.write_event(cte.ERROR, 'Error choosing signal')
 
@@ -150,34 +152,34 @@ class App():
             if(self.is_EPICS):
                 if(regex == ''):
                     regex = ".*"
-                all_delays, columns = self.dataset.causation_EPICS(main_var, 
-                                                                regex, 
-                                                                begin_date, 
-                                                                end_date, 
-                                                                margin,
-                                                                optimizer = options['optimizer'],
-                                                                levels = options['levels'],
-                                                                kernel_size = options['kernel_size'],
-                                                                significance = options['significance'],
-                                                                dilation = options['dilation'],
-                                                                loginterval = options['loginterval'],
-                                                                learningrate = options['learningrate'],
-                                                                epochs = options['epochs'])
+                all_delays, columns = self.dataset.causation_EPICS(main_var,
+                                                                   regex,
+                                                                   begin_date,
+                                                                   end_date,
+                                                                   margin,
+                                                                   optimizer=options['optimizer'],
+                                                                   levels=options['levels'],
+                                                                   kernel_size=options['kernel_size'],
+                                                                   significance=options['significance'],
+                                                                   dilation=options['dilation'],
+                                                                   loginterval=options['loginterval'],
+                                                                   learningrate=options['learningrate'],
+                                                                   epochs=options['epochs'])
             else:
-                all_delays, columns = self.dataset.causation(main_var, 
-                                                            begin_date, 
-                                                            end_date, 
-                                                            margin, 
-                                                            optimizer = options['optimizer'],
-                                                            levels = options['levels'],
-                                                            kernel_size = options['kernel_size'],
-                                                            significance = options['significance'],
-                                                            dilation = options['dilation'],
-                                                            loginterval = options['loginterval'],
-                                                            learningrate = options['learningrate'],
-                                                            epochs = options['epochs'])
+                all_delays, columns = self.dataset.causation(main_var,
+                                                             begin_date,
+                                                             end_date,
+                                                             margin,
+                                                             optimizer=options['optimizer'],
+                                                             levels=options['levels'],
+                                                             kernel_size=options['kernel_size'],
+                                                             significance=options['significance'],
+                                                             dilation=options['dilation'],
+                                                             loginterval=options['loginterval'],
+                                                             learningrate=options['learningrate'],
+                                                             epochs=options['epochs'])
 
-            self.window.write_event(cte.CAUSATION, (all_delays,columns))
+            self.window.write_event(cte.CAUSATION, (all_delays, columns))
         except:
             self.window.write_event(cte.ERROR, 'Error during causal discovery')
 
@@ -186,16 +188,20 @@ class App():
             if(self.is_EPICS):
                 if(regex == ''):
                     regex = ".*"
-                delays, corrs, names = self.dataset.correlate_EPICS(main_var, regex, begin_date, end_date, margin, method)
+                delays, corrs, names = self.dataset.correlate_EPICS(
+                    main_var, regex, begin_date, end_date, margin, method)
             else:
-                delays, corrs, names = self.dataset.correlate(main_var, begin_date, end_date, margin, method)
+                delays, corrs, names = self.dataset.correlate(
+                    main_var, begin_date, end_date, margin, method)
 
             self.delays = dict(zip(names, delays))
-            delays = self.dataset.to_date(delays,names)
+            delays = self.dataset.to_date(delays, names)
 
-            corrs, delays, names = zip(*sorted(zip(corrs, delays, names),reverse=True,key=lambda x: abs(x[0])))
+            corrs, delays, names = zip(
+                *sorted(zip(corrs, delays, names), reverse=True, key=lambda x: abs(x[0])))
 
-            self.window.update_tree(list(map(list, zip(names, corrs, delays))),cte.CORR)
+            self.window.update_tree(
+                list(map(list, zip(names, corrs, delays))), cte.CORR)
             self.window.write_event(cte.THREAD, '*** Correlation Finished ***')
         except:
             self.window.write_event(cte.ERROR, 'Error during correlation')
@@ -214,7 +220,7 @@ class App():
     def get_var(self, is_EPICS, main_var):
         beg = self.convert_time(is_EPICS, self.begin_date)
         end = self.convert_time(is_EPICS, self.end_date)
-        if(is_EPICS): 
+        if(is_EPICS):
             x = self.dataset.get_EPICS_pv([main_var], beg, end)
         else:
             if(beg != None and end != None):
@@ -228,9 +234,9 @@ class App():
             x_label = self.window.get_selected_row(cte.PVS)
 
             if(end_date != ' 00:00'):
-                self.end_date = datetime.strptime(end_date,"%Y-%m-%d %H:%M")
+                self.end_date = datetime.strptime(end_date, "%Y-%m-%d %H:%M")
             if(beg_date != ' 00:00'):
-                self.begin_date = datetime.strptime(beg_date,"%Y-%m-%d %H:%M")
+                self.begin_date = datetime.strptime(beg_date, "%Y-%m-%d %H:%M")
             elif(self.end_date == None):
                 dt = timedelta(days=7)
                 self.begin_date = datetime.today()-dt
@@ -241,61 +247,63 @@ class App():
                 d = x.index[0].date().isoformat()
                 t = x.index[0].strftime('%H:%M')
 
-                self.begin_date = self.convert_time(is_EPICS,x.index[0])
+                self.begin_date = self.convert_time(is_EPICS, x.index[0])
                 self.window.update_element(d, cte.DATE_BEG)
-                self.window.update_element(t,cte.TIME_BEG)
+                self.window.update_element(t, cte.TIME_BEG)
             if(end_date == ' 00:00'):
                 d = x.index[-1].date().isoformat()
                 t = x.index[-1].strftime('%H:%M')
-                self.end_date = self.convert_time(is_EPICS,x.index[-1])
+                self.end_date = self.convert_time(is_EPICS, x.index[-1])
 
                 self.window.update_element(d, cte.DATE_END)
-                self.window.update_element(t,cte.TIME_END)
+                self.window.update_element(t, cte.TIME_END)
 
             self.main_variable = x_label
-            self.window.write_event(cte.UPDATE, (x,x_label,None,'Time'))
+            self.window.write_event(cte.UPDATE, (x, x_label, None, 'Time'))
         except:
             self.window.write_event(cte.ERROR, 'Error choosing variable')
 
     def select_time(self, main_var, begin_date, end_date, is_EPICS):
         try:
             if(begin_date != ''):
-                self.begin_date = datetime.strptime(begin_date,"%Y-%m-%d %H:%M")
+                self.begin_date = datetime.strptime(
+                    begin_date, "%Y-%m-%d %H:%M")
             else:
                 self.begin_date = None
 
             if(end_date != ''):
-                self.end_date = datetime.strptime(end_date,"%Y-%m-%d %H:%M")
+                self.end_date = datetime.strptime(end_date, "%Y-%m-%d %H:%M")
             else:
                 self.end_date = None
 
             self.begin_date = self.convert_time(is_EPICS, self.begin_date)
             self.end_date = self.convert_time(is_EPICS, self.end_date)
-            if(main_var != None): 
+            if(main_var != None):
                 x = self.get_var(is_EPICS, main_var)
                 d = x.index[0].date().isoformat()
                 t = x.index[0].strftime('%H:%M')
 
-                self.begin_date = self.convert_time(is_EPICS,x.index[0])
+                self.begin_date = self.convert_time(is_EPICS, x.index[0])
                 self.window.update_element(d, cte.DATE_BEG)
-                self.window.update_element(t,cte.TIME_BEG)
+                self.window.update_element(t, cte.TIME_BEG)
 
                 d = x.index[-1].date().isoformat()
                 t = x.index[-1].strftime('%H:%M')
-                self.end_date = self.convert_time(is_EPICS,x.index[-1])
+                self.end_date = self.convert_time(is_EPICS, x.index[-1])
 
                 self.window.update_element(d, cte.DATE_END)
-                self.window.update_element(t,cte.TIME_END)
-                self.window.write_event(cte.UPDATE, (x,main_var,None,'Time'))
+                self.window.update_element(t, cte.TIME_END)
+                self.window.write_event(
+                    cte.UPDATE, (x, main_var, None, 'Time'))
             else:
                 self.window.write_event(cte.THREAD, '*** Time Selected ***')
         except:
             self.window.write_event(cte.ERROR, 'Error during time selection')
 
     def clean_regex(self, regex):
-        if(regex==''):
+        if(regex == ''):
             return '.*'
-        
+
         return '?'.join([*['(.*'+'.*'.join(el.split('&'))+'.*)' for el in regex.split()], ''])
 
     def choose_regex(self, regex, is_EPICS):
@@ -304,10 +312,10 @@ class App():
                 n = self.dataset.number_of_vars(regex)
                 message = 'Number of Signals: '+str(n)
 
-                self.window.update_element(message,cte.N_VARS)
+                self.window.update_element(message, cte.N_VARS)
             else:
                 message = 'O dataset próprio realiza a comparação com todas as variáveis'
-                self.window.update_element(message,cte.N_VARS)
+                self.window.update_element(message, cte.N_VARS)
 
             self.window.write_event(cte.THREAD, '*** Regex Chosen ***')
         except:
@@ -324,25 +332,25 @@ class App():
             self.timeout = None
         except:
             pass
-    
+
     def start_thread(self):
         self.thread.start()
         self.timeout = 100
         self.window.start_loading(timeout=self.timeout)
         self.running = True
 
-
     def iteration(self):
 
         if(self.choosing_params):
-            event, values = self.window.read_events(timeout=self.timeout, index=self.params)
+            event, values = self.window.read_events(
+                timeout=self.timeout, index=self.params)
         else:
             event, values = self.window.read_events(timeout=self.timeout)
 
         if event == sg.WIN_CLOSED:
             if(self.choosing_params):
-               self.window.close(index=self.params)
-               self.choosing_params=False
+                self.window.close(index=self.params)
+                self.choosing_params = False
             else:
                 return 0
 
@@ -357,7 +365,8 @@ class App():
             try:
                 if(self.thread == None):
                     self.dataset = Dataset()
-                    self.thread = threading.Thread(target=self.initialize_EPICS, daemon=True)
+                    self.thread = threading.Thread(
+                        target=self.initialize_EPICS, daemon=True)
                     self.start_thread()
             except:
                 self.stop_loading()
@@ -365,15 +374,16 @@ class App():
 
         elif event == cte.IN or event == cte.SEARCH:
             try:
-                if(self.thread == None and self.is_EPICS and event==cte.SEARCH):
+                if(self.thread == None and self.is_EPICS and event == cte.SEARCH):
                     self.thread = threading.Thread(target=self.update_main_list, args=(
-                                                                    values[cte.IN],
-                                                                    self.is_EPICS,
-                                                                    (event==cte.SEARCH)),
-                                                                    daemon=True)
+                        values[cte.IN],
+                        self.is_EPICS,
+                        (event == cte.SEARCH)),
+                        daemon=True)
                     self.start_thread()
                 elif(not self.is_EPICS):
-                    self.update_main_list(values[cte.IN], self.is_EPICS, clicked=(event==cte.SEARCH))
+                    self.update_main_list(
+                        values[cte.IN], self.is_EPICS, clicked=(event == cte.SEARCH))
             except:
                 self.stop_loading()
                 self.window.popup('Error searching for variables')
@@ -381,16 +391,18 @@ class App():
         elif event == cte.CORR:
             try:
                 if(not (values[cte.DELAY] or values[cte.ORIGINAL])):
-                    self.window.popup('You must choose at least one between:\n  - Original Signal\n  - Delay Corrected Signal')
+                    self.window.popup(
+                        'You must choose at least one between:\n  - Original Signal\n  - Delay Corrected Signal')
 
                 elif(self.thread == None):
-                    self.thread = threading.Thread(target=self.choose_corr, args=(self.main_variable, 
-                                                                                self.begin_date, 
-                                                                                self.end_date, 
-                                                                                float(values[cte.MARGIN]), 
-                                                                                values[cte.DELAY], 
-                                                                                values[cte.ORIGINAL], 
-                                                                                self.is_EPICS), daemon=True)
+                    self.thread = threading.Thread(target=self.choose_corr, args=(self.main_variable,
+                                                                                  self.begin_date,
+                                                                                  self.end_date,
+                                                                                  float(
+                                                                                      values[cte.MARGIN]),
+                                                                                  values[cte.DELAY],
+                                                                                  values[cte.ORIGINAL],
+                                                                                  self.is_EPICS), daemon=True)
                     self.start_thread()
             except:
                 self.stop_loading()
@@ -405,18 +417,20 @@ class App():
         elif event == cte.PVS:
             try:
                 if(self.thread == None):
-                    beg = values[cte.DATE_BEG].strip()+" "+values[cte.TIME_BEG].strip()
-                    end = values[cte.DATE_END].strip()+" "+values[cte.TIME_END].strip()
+                    beg = values[cte.DATE_BEG].strip(
+                    )+" "+values[cte.TIME_BEG].strip()
+                    end = values[cte.DATE_END].strip(
+                    )+" "+values[cte.TIME_END].strip()
 
-                    self.thread = threading.Thread(target=self.choose_pv, args=(self.is_EPICS, 
-                                                                       beg,
-                                                                       end), daemon=True)
+                    self.thread = threading.Thread(target=self.choose_pv, args=(self.is_EPICS,
+                                                                                beg,
+                                                                                end), daemon=True)
                     self.start_thread()
             except:
                 self.stop_loading()
                 self.window.popup('Error choosing main signal')
-              
-        elif event==cte.CREATE:
+
+        elif event == cte.CREATE:
             self.choosing_params = False
             opts = {'optimizer': values[cte.OPTIMIZER],
                     'levels': int(values[cte.LEVEL]),
@@ -429,38 +443,41 @@ class App():
             self.window.close(self.params)
             self.window.write_event(cte.START_CAUSATION, opts)
 
-        elif event==cte.CORRELATE:
+        elif event == cte.CORRELATE:
             try:
-                if(self.thread == None):
-                    if(values[cte.METHOD]=='Causation'):
-                        self.params = self.window.create_window('Parameters', 
+                if self.thread is None:
+                    if(values[cte.METHOD] == 'Causation'):
+                        self.params = self.window.create_window('Parameters',
                                                                 self.layout.get_param_layout(),
                                                                 icon=self.config_img,
                                                                 resizable=True)
                         self.choosing_params = True
                     else:
-                        self.thread = threading.Thread(target=self.correlate_vars, args=(self.main_variable, 
-                                                                           self.begin_date,
-                                                                           self.end_date, 
-                                                                           float(values[cte.MARGIN]), 
-                                                                           self.clean_regex(values[cte.REGEX]), 
-                                                                           values[cte.METHOD],
-                                                                           self.is_EPICS), daemon=True)
+                        self.thread = threading.Thread(target=self.correlate_vars, args=(self.main_variable,
+                                                                                         self.begin_date,
+                                                                                         self.end_date,
+                                                                                         float(
+                                                                                             values[cte.MARGIN]),
+                                                                                         self.clean_regex(
+                                                                                             values[cte.REGEX]),
+                                                                                         values[cte.METHOD],
+                                                                                         self.is_EPICS), daemon=True)
                         self.start_thread()
             except:
                 self.stop_loading()
                 self.window.popup('Error during correlation')
-        
+
         elif event == cte.START_CAUSATION:
             try:
-                if(self.thread == None):
-                    self.thread = threading.Thread(target=self.causal_discovery, args=(self.main_variable, 
-                                                                   self.begin_date,
-                                                                   self.end_date, 
-                                                                   float(values[cte.MARGIN]), 
-                                                                   self.clean_regex(values[cte.REGEX]), 
-                                                                   values[cte.START_CAUSATION],
-                                                                   self.is_EPICS), daemon=True)
+                if self.thread is None:
+                    self.thread = threading.Thread(target=self.causal_discovery
+                                                   , args=(self.main_variable,
+                                                           self.begin_date,
+                                                           self.end_date,
+                                                           float(values[cte.MARGIN]),
+                                                           self.clean_regex(values[cte.REGEX]),
+                                                           values[cte.START_CAUSATION],
+                                                           self.is_EPICS), daemon=True)
                     self.start_thread()
             except:
                 self.stop_loading()
@@ -500,19 +517,21 @@ class App():
             except:
                 pass
 
-        elif event==cte.SELECT:
+        elif event == cte.SELECT:
             try:
                 if(self.plots.selected()):
                     beg, end = self.plots.get_times()
                 else:
-                    beg = values[cte.DATE_BEG].strip()+" "+values[cte.TIME_BEG].strip()
-                    end = values[cte.DATE_END].strip()+" "+values[cte.TIME_END].strip()
+                    beg = values[cte.DATE_BEG].strip(
+                    )+" "+values[cte.TIME_BEG].strip()
+                    end = values[cte.DATE_END].strip(
+                    )+" "+values[cte.TIME_END].strip()
 
                 if(self.thread == None):
-                    self.thread = threading.Thread(target=self.select_time, args=(self.main_variable, 
-                                                                       beg,
-                                                                       end, 
-                                                                       self.is_EPICS), daemon=True)
+                    self.thread = threading.Thread(target=self.select_time, args=(self.main_variable,
+                                                                                  beg,
+                                                                                  end,
+                                                                                  self.is_EPICS), daemon=True)
                     self.start_thread()
             except:
                 self.stop_loading()
@@ -521,8 +540,8 @@ class App():
         elif event == cte.CHOOSE:
             try:
                 if(self.thread == None):
-                    self.thread = threading.Thread(target=self.choose_regex, args=(self.clean_regex(values[cte.REGEX]), 
-                                                                       self.is_EPICS), daemon=True)
+                    self.thread = threading.Thread(target=self.choose_regex, args=(self.clean_regex(values[cte.REGEX]),
+                                                                                   self.is_EPICS), daemon=True)
                     self.start_thread()
             except:
                 self.stop_loading()

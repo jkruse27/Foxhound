@@ -20,24 +20,25 @@ import constants as cte
 import causations as cause
 from requests.packages.urllib3.exceptions import InsecureRequestWarning
 
+
 class Interface():
     """
     Class responsible for all interfaces with the UI,
     managing the opened windows and reading and writting
     to the UI.
     """
+
     def __init__(self):
         self.windows = []
 
-
-    def create_window(self, name,layout,**opt):
+    def create_window(self, name, window_layout, **opt):
         """Create window with the given specifications
 
         Parameters
         ----------
         name : str
             Window name
-        layout : List[List[Element]]
+        window_layout : List[List[Element]]
             Layout for the window
         **opt : kwargs
             Optional parameters (icon, resizable, maximizer, etc)
@@ -45,20 +46,29 @@ class Interface():
         Returns
         -------
         int:
-            Window identifier for reading and writting from and to this specific window 
+            Window identifier for reading and writting from and to this
+            specific window
         """
         img = opt.get('icon', None)
         resizable = opt.get('resizable', True)
         maximize = opt.get('maximize', False)
+        expands = opt.get('expand', [])
 
-        window = sg.Window(name, layout, resizable=resizable, icon=img).Finalize()
-        if(maximize):
+        window = sg.Window(name, window_layout, resizable=resizable).Finalize()
+
+        if img is not None:
+            window.set_icon(img)
+
+        if maximize:
             window.Maximize()
+
+        for element in expands:
+            window[element].expand(expand_x=True, expand_y=True)
         self.windows.append(window)
 
         return len(self.windows)-1
 
-    def get_window(index=0):
+    def get_window(self, index=0):
         """ Get window
 
         Parameters
@@ -71,7 +81,6 @@ class Interface():
         sg.Window
             Window object
         """
-
         return self.windows[index]
 
     def create_tree(self, values, index=None):
@@ -90,16 +99,16 @@ class Interface():
             Tree with the given data
         """
         new_tree = sg.TreeData()
-        
-        if(index==None):
+
+        if index is None:
             index = range(len(values))
 
-        for i,j in enumerate(index):
-            new_tree.Insert("",j,j,values[i])
+        for i, j in enumerate(index):
+            new_tree.Insert("", j, j, values[i])
 
         return new_tree
 
-    def update_tree(self, data, element,index=0):
+    def update_tree(self, data, element, index=0):
         """Updates the tree on the screen
 
         Parameters
@@ -111,8 +120,9 @@ class Interface():
         index : int, optional
             Identifier for which window to update
         """
-        
-        self.windows[index].Element(element).Update(values=self.create_tree(data))
+
+        self.windows[index].Element(element).Update(
+            values=self.create_tree(data))
 
     def update_element(self, data, element, arg_name='value', index=0):
         """Updates the element on the screen
@@ -128,11 +138,10 @@ class Interface():
         index : int, optional
             Identifier for which window to update
         """
-        if(arg_name=='value'):
+        if(arg_name == 'value'):
             self.windows[index].Element(element).Update(value=data)
-        elif(arg_name==''):
+        elif(arg_name == ''):
             self.windows[index].Element(element).Update(data)
-
 
     def get_selected_row(self, element, index=0):
         """Get selected row from tree
@@ -146,12 +155,14 @@ class Interface():
         """
 
         selected_row = self.windows[index].Element(element).SelectedRows[0]
-        selected_row = self.windows[index].Element(element).TreeData.tree_dict[selected_row].values
-        selected_row = selected_row[0] if isinstance(selected_row, list) else selected_row
+        selected_row = self.windows[index].Element(
+            element).TreeData.tree_dict[selected_row].values
+        selected_row = selected_row[0] if isinstance(
+            selected_row, list) else selected_row
 
         return selected_row
 
-    def write_event(self, name, params, index=0): 
+    def write_event(self, name, params, index=0):
         """Get selected row from tree
 
         Parameters
@@ -163,7 +174,7 @@ class Interface():
         index : int, optional
             Identifier for which window to create from
         """
-        
+
         self.windows[index].write_event_value(name, params)
 
     def start_loading(self, timeout=100):
@@ -174,11 +185,12 @@ class Interface():
         timeout : int
             Timeout between frames in ms
         """
-        sg.popup_animated(sg.DEFAULT_BASE64_LOADING_GIF, background_color='white', transparent_color='white', time_between_frames=timeout)
-       
+        sg.popup_animated(sg.DEFAULT_BASE64_LOADING_GIF, background_color='white',
+                          transparent_color='white', time_between_frames=timeout)
+
     def popup(self, message):
         """ Display popup with message
-        
+
         Parameters
         ----------
         message : str
@@ -192,7 +204,7 @@ class Interface():
 
     def read_events(self, timeout=None, index=0):
         """ Read events and values from window
-        
+
         Parameters
         ----------
         timeout : int, optional

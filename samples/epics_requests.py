@@ -2,6 +2,7 @@ import asyncio
 import aiohttp
 import operator
 import pandas as pd
+import pytz
 from datetime import datetime, timedelta
 import requests
 import ast
@@ -142,5 +143,6 @@ async def call_fetch(pv_list, dt_init, dt_end):
         print('Erro com os tempos!')
         return
 
-    data = await asyncio.create_task(fetch_data(pv_list, timespan))
+    loop = asyncio.get_event_loop()
+    data = await loop.create_task(fetch_data(pv_list, timespan))
     return correct_datetime(data)
